@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+
 import '../../checkin_checkout/checkin_checkout_views/geofencing.dart';
 
 
@@ -179,6 +181,7 @@ class _HomePageState extends State<HomePage> {
     const Home(),
     const Overview(),
     const User(),
+    const Placeholder(),
   ];
 
   void _scrollListener() {
@@ -845,6 +848,26 @@ class _HomePageState extends State<HomePage> {
             ),
             Card(
               child: ListTile(
+                leading: const Icon(Icons.ballot_rounded),
+                title: const Text('Recruitment'),
+                subtitle: Text(
+                  'Record , view and manage hiring.',
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () {
+                  if (permissionCheck) {
+                    Navigator.pushNamed(context, '/recruitment_dashboard',
+                        arguments: permissionCheck);
+                  } else {
+                    Navigator.pushNamed(context, '/home',
+                        arguments: permissionCheck);
+                  }
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
                 leading: const Icon(Icons.bar_chart_outlined),
                 title: const Text('Performance'),
                 subtitle: Text(
@@ -865,7 +888,21 @@ class _HomePageState extends State<HomePage> {
             ),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.checklist_rtl),
+                leading: const Icon(Icons.attach_money_sharp),
+                title: const Text('Reimbursements/Invoice'),
+                subtitle: Text(
+                  'Apply for reimbursement and/or view your history',
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () {
+                  Navigator.pushNamed(context, '/invoice_dashboard');
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.inventory_2_rounded),
                 title: const Text('Assets'),
                 subtitle: Text(
                   'Record , view and manage Assets.',
@@ -922,18 +959,13 @@ class _HomePageState extends State<HomePage> {
               durationInMilliSeconds: 500,
               bottomBarItems: const [
                 BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
+                  inActiveItem: Icon(Icons.home_filled,color: Colors.white,
                   ),
                   activeItem: Icon(
-                    Icons.home_filled,
-                    color: Colors.white,
+                    Icons.home_filled,color: Colors.white,
                   ),
                 ),
-                BottomBarItem(
-                  inActiveItem: Icon(
-                    Icons.update_outlined,
+                BottomBarItem(inActiveItem: Icon(Icons.update_outlined,
                     color: Colors.white,
                   ),
                   activeItem: Icon(
@@ -951,6 +983,8 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.white,
                   ),
                 ),
+                BottomBarItem(inActiveItem: Icon(Icons.flash_on , color: Colors.white,),
+                activeItem: Icon(Icons.flash_on ,color : Colors.white ))
               ],
               onTap: (index) async {
                 switch (index) {
@@ -977,6 +1011,7 @@ class _HomePageState extends State<HomePage> {
           : null,
     );
   }
+
 
   void showSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(

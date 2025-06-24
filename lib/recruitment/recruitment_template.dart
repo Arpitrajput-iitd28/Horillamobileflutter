@@ -6,27 +6,27 @@ import 'package:printing/printing.dart';
 
 const Color kMaroon = Color(0xFF800000);
 
-class QuestionTemplate extends StatefulWidget {
-  const QuestionTemplate({Key? key}) : super(key: key);
+class RecruitmentTemplatePage extends StatefulWidget {
+  const RecruitmentTemplatePage({Key? key}) : super(key: key);
 
   @override
-  State<QuestionTemplate> createState() => _RecruitmentTemplatePageState();
+  State<RecruitmentTemplatePage> createState() => _RecruitmentTemplatePageState();
 }
 
-class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
+class _RecruitmentTemplatePageState extends State<RecruitmentTemplatePage> {
   List<Map<String, dynamic>> templates = [
     {
-      'title': 'Communication',
+      'title': 'Front-end Development',
       'questions': [
-        {'text': 'How would you describe the clarity level of this person?', 'priority': 'Common'},
-        {'text': 'How would you describe the ambiguity in this persons presentation', 'priority': 'Advanced'},
+        {'text': 'What is a widget in Flutter?', 'priority': 'Common'},
+        {'text': 'Explain the widget lifecycle.', 'priority': 'Advanced'},
       ],
     },
     {
       'title': 'Back-end Development',
       'questions': [
-        {'text': 'How did the APIs function ?', 'priority': 'High Priority'},
-        {'text': 'Was this person open to resolving issues that came up?', 'priority': 'Niche'},
+        {'text': 'Explain RESTful APIs.', 'priority': 'High Priority'},
+        {'text': 'What is JWT authentication?', 'priority': 'Niche'},
       ],
     },
   ];
@@ -221,16 +221,16 @@ class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
                             activeColor: kMaroon,
                           ),
                           Expanded(
-                            child: Text(
+                            child : Text(
                               template['title'],
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, color: kMaroon, fontSize: 12),
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                          ),
-                        ],
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, color: kMaroon , fontSize: 12),
+                                softWrap: true,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                        )],
+                      
                       ),
                       children: [
                         ...List.generate(
@@ -360,7 +360,7 @@ class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Question Template', style: TextStyle(color: kMaroon)),
+        title: const Text('Recruitment Template', style: TextStyle(color: kMaroon)),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: kMaroon),
         elevation: 1,

@@ -1,0 +1,10 @@
+1. give the access to clear request only to hr/managers .
+2. permission to edit progress in objectives restricted to hr.
+3.automate the name part in applying for reimbursement from the employee database.
+4. Clear request wale page mein ai assistant use kr rhe h ye bhadwe to usko handle krna pdega 
+5. allocation and return wali window ko hr/admin specific banana hein.
+6.Filter in request and allocation ko remove krna h 
+7.remove the bug in asset view page
+8. remove the bug in objective page
+9. windsurf , cursur
+10 reimburesement mein automatic naam aa jaye
