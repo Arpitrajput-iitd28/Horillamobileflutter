@@ -41,6 +41,7 @@ import 'performance/meetings.dart';
 import "resource/assets_dashboard.dart";
 import "resource/requestandallocation.dart";
 import 'resource/assets_view.dart';
+import "resource/assets_history.dart";
 
 import "invoice/invoice_dashboard.dart" ;
 
@@ -379,6 +380,7 @@ class LoginApp extends StatelessWidget {
         "/recruitment_dashboard" : (context) => const RecruitmentDashboard(),
         "/recruitment_template" : (context) => const RecruitmentTemplatePage(),
         "/recruitment_history" : (context) => const RecruitmentHistoryPage(),
+        "/assets_history" : (context) => AssetHistory(),
       
 
       },

@@ -1,5 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart'; // Re-enabled import
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+
+// // === Asset View API Service ===
+// class AssetViewService {
+//   static const String baseUrl = 'https://yourapi.com/assets';
+
+//   // Fetch all categories and assets
+//   Future<List<Map<String, dynamic>>> fetchCategories() async {
+//     final response = await http.get(Uri.parse(baseUrl));
+//     if (response.statusCode == 200) {
+//       final List<dynamic> data = jsonDecode(response.body);
+//       return List<Map<String, dynamic>>.from(data);
+//     } else {
+//       throw Exception('Failed to load categories');
+//     }
+//   }
+
+//   // Add a new asset (to a category)
+//   Future<void> addAsset(String category, Map<String, dynamic> asset) async {
+//     final url = '$baseUrl/$category/assets';
+//     final response = await http.post(
+//       Uri.parse(url),
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode(asset),
+//     );
+//     if (response.statusCode != 201) {
+//       throw Exception('Failed to add asset');
+//     }
+//   }
+
+//   // Add a new category
+//   Future<void> addCategory(String categoryName, Map<String, dynamic> firstAsset) async {
+//     final url = '$baseUrl';
+//     final response = await http.post(
+//       Uri.parse(url),
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode({
+//         'name': categoryName,
+//         'assets': [firstAsset],
+//       }),
+//     );
+//     if (response.statusCode != 201) {
+//       throw Exception('Failed to add category');
+//     }
+//   }
+
+//   // Edit asset
+//   Future<void> editAsset(String category, String assetId, Map<String, dynamic> updatedAsset) async {
+//     final url = '$baseUrl/$category/assets/$assetId';
+//     final response = await http.put(
+//       Uri.parse(url),
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode(updatedAsset),
+//     );
+//     if (response.statusCode != 200) {
+//       throw Exception('Failed to update asset');
+//     }
+//   }
+
+//   // Archive asset
+//   Future<void> archiveAsset(String category, String assetId) async {
+//     final url = '$baseUrl/$category/assets/$assetId/archive';
+//     final response = await http.post(Uri.parse(url));
+//     if (response.statusCode != 200) {
+//       throw Exception('Failed to archive asset');
+//     }
+//   }
+
+//   // Delete asset
+//   Future<void> deleteAsset(String category, String assetId) async {
+//     final url = '$baseUrl/$category/assets/$assetId';
+//     final response = await http.delete(Uri.parse(url));
+//     if (response.statusCode != 200 && response.statusCode != 204) {
+//       throw Exception('Failed to delete asset');
+//     }
+//   }
+// }
+
 
 // Define your primary color
 const Color kMaroon = Color(0xFF800000);
@@ -13,6 +92,26 @@ class AssetsViewPage extends StatefulWidget {
 
 class _AssetsViewPageState extends State<AssetsViewPage> {
   // Initial data for categories and assets
+  // final AssetViewService assetViewService = AssetViewService();
+// List<Map<String, dynamic>> categories = []; // Will be loaded from API
+
+// @override
+// void initState() {
+//   super.initState();
+//   // _loadCategories();
+// }
+
+// Future<void> _loadCategories() async {
+//   try {
+//     final data = await assetViewService.fetchCategories();
+//     setState(() {
+//       categories = data;
+//     });
+//   } catch (e) {
+//     // Handle error (show snackbar, etc.)
+//   }
+// }
+
   List<Map<String, dynamic>> categories = [
     {
       'name': 'Laptops',
@@ -504,6 +603,23 @@ class _AssetsViewPageState extends State<AssetsViewPage> {
                       }
                     }
                   });
+                  // if (isNewCategory) {
+//   await assetViewService.addCategory(newCategoryName.trim(), {
+//     'asset': assetName.trim(),
+//     'status': status,
+//     'trackingId': trackingId.trim(),
+//     'batchNo': batchNo.trim(),
+//   });
+// } else {
+//   await assetViewService.addAsset(selectedCategory, {
+//     'asset': assetName.trim(),
+//     'status': status,
+//     'trackingId': trackingId.trim(),
+//     'batchNo': batchNo.trim(),
+//   });
+// }
+// await _loadCategories();
+
                   Navigator.pop(context); // Close dialog
                 },
                 child: const Text('Done'),
@@ -593,6 +709,18 @@ class _AssetsViewPageState extends State<AssetsViewPage> {
                       _showSnackBar('Asset updated successfully!', Colors.green);
                     }
                   });
+                  // await assetViewService.editAsset(
+//   categoryName,
+//   assetToEdit['trackingId'], // Or use a real unique ID from your backend
+//   {
+//     'asset': newAssetName.trim(),
+//     'status': newStatus,
+//     'trackingId': newTrackingId.trim(),
+//     'batchNo': newBatchNo.trim(),
+//   },
+// );
+// await _loadCategories();
+
                   Navigator.pop(context);
                 },
                 child: const Text('Save'),
@@ -625,6 +753,9 @@ class _AssetsViewPageState extends State<AssetsViewPage> {
                 (cat['assets'] as List).remove(asset);
                 _showSnackBar('Asset deleted.', Colors.green);
               });
+              // await assetViewService.deleteAsset(categoryName, asset['trackingId']);
+// await _loadCategories();
+
               Navigator.pop(context);
             },
             child: const Text('Delete'),
@@ -640,6 +771,9 @@ class _AssetsViewPageState extends State<AssetsViewPage> {
       final cat = categories.firstWhere((c) => c['name'] == categoryName);
       (cat['assets'] as List).remove(asset);
     });
+    // await assetViewService.archiveAsset(categoryName, asset['trackingId']);
+// await _loadCategories();
+
     _showSnackBar('Asset "${asset['asset']}" archived.', Colors.blue);
   }
 

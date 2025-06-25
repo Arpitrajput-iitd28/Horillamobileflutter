@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:open_file/open_file.dart';
 
 const Color kMaroon = Color(0xFF800000);
 
@@ -165,7 +167,7 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
                       Expanded(
                         child: Text(
                           resumePath != null
-                              ? 'Resume: ${resumePath!.split('/').last}'
+                              ? 'Resume: ${resumePath?.split('/').last}'
                               : 'No resume selected',
                           style: const TextStyle(color: kMaroon),
                           overflow: TextOverflow.ellipsis,
@@ -264,8 +266,31 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
     });
   }
 
+  Future<void> _launchLinkedIn(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch LinkedIn profile.')),
+      );
+    }
+  }
+
+  Future<void> _openResume(String path) async {
+    if (path.isNotEmpty) {
+      final result = await OpenFile.open(path);
+      if (result.type != ResultType.done) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open resume file.')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = filteredHistory;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Recruitment History', style: TextStyle(color: kMaroon)),
@@ -318,14 +343,14 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
           // Cards
           Expanded(
             child: ListView.builder(
-              itemCount: filteredHistory.length,
+              itemCount: filtered.length,
               itemBuilder: (context, idx) {
-                final item = filteredHistory[idx];
+                final item = filtered[idx];
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(14),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.all(14),
                     leading: CircleAvatar(
                       backgroundColor: kMaroon.withOpacity(0.1),
                       backgroundImage: item['imagePath'] != null
@@ -336,53 +361,139 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
                           ? const Icon(Icons.person, color: kMaroon, size: 32)
                           : null,
                     ),
-                    title: Wrap(
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item['title'],
-                            style: const TextStyle(
-                                color: kMaroon,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16)),
-                        const SizedBox(width: 8),
+                        Text(
+                          item['title'],
+                          style: const TextStyle(
+                            color: kMaroon,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                          softWrap: true,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
                         Text(
                           item['name'],
                           style: const TextStyle(
-                              color: Colors.black87, fontWeight: FontWeight.w500),
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                          ),
+                          softWrap: true,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Joined: ${DateFormat('yyyy-MM-dd').format(item['dateJoined'])}',
+                          style: const TextStyle(color: Colors.black54, fontSize: 13),
                         ),
                       ],
                     ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        'Joined: ${DateFormat('yyyy-MM-dd').format(item['dateJoined'])}',
-                        style: const TextStyle(color: Colors.black54),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Action icons row
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: kMaroon),
+                                    onPressed: () => _showCreateDialog(editItem: item, editIdx: idx),
+                                    tooltip: 'Edit',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.archive, color: kMaroon),
+                                    onPressed: () => _archiveItem(idx),
+                                    tooltip: 'Archive',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: kMaroon),
+                                    onPressed: () => _deleteItem(idx),
+                                    tooltip: 'Delete',
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.share, color: kMaroon),
+                                    onPressed: () => _showShareDialog(item),
+                                    tooltip: 'Share',
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              // LinkedIn (tappable, wrapped)
+                              if ((item['linkedin'] as String).isNotEmpty)
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.link, color: kMaroon, size: 18),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => _launchLinkedIn(item['linkedin']),
+                                        child: Text(
+                                          item['linkedin'],
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            fontSize: 13,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              // Resume (tappable, wrapped)
+                              if ((item['resume'] as String?)?.isNotEmpty == true)
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.picture_as_pdf, color: kMaroon, size: 18),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => _openResume(item['resume']),
+                                        child: Text(
+                                          item['resume'].toString().split('/').last,
+                                          style: const TextStyle(
+                                            color: kMaroon,
+                                            fontSize: 13,
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text('(Tap to open)', style: TextStyle(fontSize: 11)),
+                                  ],
+                                ),
+                              // Description (wrapped)
+                              if ((item['description'] as String).isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    item['description'],
+                                    style: const TextStyle(color: Colors.black87, fontSize: 13),
+                                    softWrap: true,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    trailing: Wrap(
-                      spacing: 8,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: kMaroon),
-                          onPressed: () => _showCreateDialog(editItem: item, editIdx: idx),
-                          tooltip: 'Edit',
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.archive, color: kMaroon),
-                          onPressed: () => _archiveItem(idx),
-                          tooltip: 'Archive',
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: kMaroon),
-                          onPressed: () => _deleteItem(idx),
-                          tooltip: 'Delete',
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.share, color: kMaroon),
-                          onPressed: () => _showShareDialog(item),
-                          tooltip: 'Share',
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 );
               },

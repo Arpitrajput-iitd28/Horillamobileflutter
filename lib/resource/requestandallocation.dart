@@ -3,6 +3,59 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:file_picker/file_picker.dart';
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+
+// // === Request & Allocation API Service ===
+// class RequestService {
+//   static const String baseUrl = 'https://yourapi.com/requests';
+
+//   // Fetch all requests
+//   Future<List<Map<String, dynamic>>> fetchRequests() async {
+//     final response = await http.get(Uri.parse(baseUrl));
+//     if (response.statusCode == 200) {
+//       final List<dynamic> data = jsonDecode(response.body);
+//       return List<Map<String, dynamic>>.from(data);
+//     } else {
+//       throw Exception('Failed to load requests');
+//     }
+//   }
+
+//   // Add a new request
+//   Future<void> addRequest(Map<String, dynamic> request) async {
+//     final response = await http.post(
+//       Uri.parse(baseUrl),
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode(request),
+//     );
+//     if (response.statusCode != 201) {
+//       throw Exception('Failed to add request');
+//     }
+//   }
+
+//   // Update request status (approve/issue/cancel/return)
+//   Future<void> updateRequestStatus(String requestId, String status) async {
+//     final url = '$baseUrl/$requestId/status';
+//     final response = await http.put(
+//       Uri.parse(url),
+//       headers: {'Content-Type': 'application/json'},
+//       body: jsonEncode({'status': status}),
+//     );
+//     if (response.statusCode != 200) {
+//       throw Exception('Failed to update status');
+//     }
+//   }
+
+//   // Delete a request
+//   Future<void> deleteRequest(String requestId) async {
+//     final url = '$baseUrl/$requestId';
+//     final response = await http.delete(Uri.parse(url));
+//     if (response.statusCode != 200 && response.statusCode != 204) {
+//       throw Exception('Failed to delete request');
+//     }
+//   }
+// }
+
 
 const Color kBlack = Colors.black;
 
@@ -14,6 +67,26 @@ class RequestandAllocation  extends StatefulWidget {
 }
 
 class _AssetDashboardState extends State<RequestandAllocation> {
+  // final RequestService requestService = RequestService();
+// List<Map<String, dynamic>> requests = []; // Will be loaded from API
+
+// @override
+// void initState() {
+//   super.initState();
+//   // _loadRequests();
+// }
+
+// Future<void> _loadRequests() async {
+//   try {
+//     final data = await requestService.fetchRequests();
+//     setState(() {
+//       requests = data;
+//     });
+//   } catch (e) {
+//     // Handle error (show snackbar, etc.)
+//   }
+// }
+
   // Mock data
   List<String> allItems = [
     'Laptop1',
@@ -430,6 +503,16 @@ class _AssetDashboardState extends State<RequestandAllocation> {
                       'date': DateTime.now(),
                     });
                   });
+                  // await requestService.addRequest({
+//   'item': selectedItem!,
+//   'employee': selectedEmployee!,
+//   'from': fromDate!,
+//   'to': toDate!,
+//   'status': 'pending',
+//   'date': DateTime.now(),
+// });
+// await _loadRequests();
+
                   Navigator.pop(context);
                 },
                 child: const Text('Done'),
@@ -507,6 +590,10 @@ class _AssetDashboardState extends State<RequestandAllocation> {
               setLocalState(() {
                 files = result.files;
               });
+              // final requestId = req['id'];
+// await requestService.updateRequestStatus(requestId, 'returned');
+// await _loadRequests();
+
             }
           }
 
