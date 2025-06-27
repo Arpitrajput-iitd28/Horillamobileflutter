@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+// Import necessary packages for API operations.
+// You would need to add 'http' to your pubspec.yaml:
+// dependencies:
+//   http: ^0.13.3 // Or the latest compatible version
+// import 'package:http/http.dart' as http;
+// import 'dart:convert'; // For encoding/decoding JSON
 
 const Color kMaroon = Color(0xFF800000);
 
@@ -13,6 +19,7 @@ class Meetings extends StatefulWidget {
 class _MeetingsState extends State<Meetings> {
   List<Map<String, dynamic>> allMeetings = [
     {
+      'id': 'm001', // Example ID for API interaction
       'title': 'Q2 Planning',
       'manager': 'Adam',
       'employee': 'John',
@@ -22,6 +29,7 @@ class _MeetingsState extends State<Meetings> {
       'isArchived': false,
     },
     {
+      'id': 'm002', // Example ID for API interaction
       'title': 'Client Review',
       'manager': 'Eve',
       'employee': 'Alice',
@@ -40,8 +48,162 @@ class _MeetingsState extends State<Meetings> {
   @override
   void initState() {
     super.initState();
+    // Uncomment this for API integration:
+    // _fetchMeetingsFromApi();
     filteredMeetings = List.from(allMeetings);
   }
+
+  // Example function to fetch meetings from a REST API
+  /*
+  Future<void> _fetchMeetingsFromApi() async {
+    // final serverAddress = 'YOUR_API_BASE_URL'; // Replace with your server URL
+    // final url = Uri.parse('$serverAddress/api/meetings/');
+    try {
+      // final response = await http.get(url, headers: {
+      //   'Authorization': 'Bearer YOUR_TOKEN', // Replace with actual token
+      //   'Content-Type': 'application/json',
+      // });
+
+      // // Simulate a network request and response for demonstration
+      // await Future.delayed(Duration(seconds: 1)); // Simulate network delay
+      // final response = http.Response(
+      //   json.encode([
+      //     {
+      //       'id': 'api_m001',
+      //       'title': 'API Fetched Meeting 1',
+      //       'manager': 'API Manager',
+      //       'employee': 'API Employee',
+      //       'dateTime': '2025-07-01T09:00:00Z', // ISO 8601 string
+      //       'minutes': 45,
+      //       'comments': 'Fetched from API.',
+      //       'isArchived': false,
+      //     },
+      //     {
+      //       'id': 'api_m002',
+      //       'title': 'API Fetched Meeting 2',
+      //       'manager': 'Another API Manager',
+      //       'employee': 'Another API Employee',
+      //       'dateTime': '2025-07-02T11:30:00Z',
+      //       'minutes': 60,
+      //       'comments': 'Another meeting from API.',
+      //       'isArchived': false,
+      //     },
+      //   ]),
+      //   200,
+      // );
+
+
+      // if (response.statusCode == 200) {
+      //   final List<dynamic> fetchedData = json.decode(response.body);
+      //   setState(() {
+      //     allMeetings = fetchedData.map((item) => {
+      //       'id': item['id'],
+      //       'title': item['title'],
+      //       'manager': item['manager'],
+      //       'employee': item['employee'],
+      //       'dateTime': DateTime.parse(item['dateTime']), // Parse ISO 8601 string
+      //       'minutes': item['minutes'],
+      //       'comments': item['comments'],
+      //       'isArchived': item['isArchived'],
+      //     }).toList();
+      //     _applyFilters(); // Re-apply filters after data refresh
+      //   });
+      // } else {
+      //   print('Failed to fetch meetings: ${response.statusCode}');
+      //   // Optionally show a user-friendly message
+      // }
+    } catch (e) {
+      print('Error fetching meetings: $e');
+      // Optionally show a user-friendly message
+    }
+  }
+  */
+
+  // Example function to add a meeting to a REST API
+  /*
+  Future<void> _addMeetingToApi(Map<String, dynamic> meetingData) async {
+    // final serverAddress = 'YOUR_API_BASE_URL';
+    // final url = Uri.parse('$serverAddress/api/meetings/');
+    try {
+      // final response = await http.post(
+      //   url,
+      //   headers: {
+      //     'Authorization': 'Bearer YOUR_TOKEN',
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: json.encode({
+      //     ...meetingData,
+      //     'dateTime': meetingData['dateTime'].toIso8601String(), // Convert DateTime to ISO 8601 string
+      //   }),
+      // );
+      // if (response.statusCode == 201) { // 201 Created
+      //   print('Meeting added successfully to API');
+      //   // Optionally, re-fetch meetings to update UI
+      //   // _fetchMeetingsFromApi();
+      // } else {
+      //   print('Failed to add meeting: ${response.statusCode}');
+      // }
+    } catch (e) {
+      print('Error adding meeting: $e');
+    }
+  }
+  */
+
+  // Example function to update a meeting on a REST API
+  /*
+  Future<void> _updateMeetingOnApi(String meetingId, Map<String, dynamic> meetingData) async {
+    // final serverAddress = 'YOUR_API_BASE_URL';
+    // final url = Uri.parse('$serverAddress/api/meetings/$meetingId/'); // Assuming ID in URL
+    try {
+      // final response = await http.put( // Or PATCH for partial updates
+      //   url,
+      //   headers: {
+      //     'Authorization': 'Bearer YOUR_TOKEN',
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: json.encode({
+      //     ...meetingData,
+      //     'dateTime': meetingData['dateTime'].toIso8601String(),
+      //   }),
+      // );
+      // if (response.statusCode == 200) {
+      //   print('Meeting updated successfully on API');
+      //   // Optionally, re-fetch meetings to update UI
+      //   // _fetchMeetingsFromApi();
+      // } else {
+      //   print('Failed to update meeting: ${response.statusCode}');
+      // }
+    } catch (e) {
+      print('Error updating meeting: $e');
+    }
+  }
+  */
+
+  // Example function to delete a meeting from a REST API
+  /*
+  Future<void> _deleteMeetingFromApi(String meetingId) async {
+    // final serverAddress = 'YOUR_API_BASE_URL';
+    // final url = Uri.parse('$serverAddress/api/meetings/$meetingId/');
+    try {
+      // final response = await http.delete(
+      //   url,
+      //   headers: {
+      //     'Authorization': 'Bearer YOUR_TOKEN',
+      //   },
+      // );
+      // if (response.statusCode == 204) { // 204 No Content for successful deletion
+      //   print('Meeting deleted successfully from API');
+      //   // Optionally, re-fetch meetings to update UI
+      //   // _fetchMeetingsFromApi();
+      // } else {
+      //   print('Failed to delete meeting: ${response.statusCode}');
+      // }
+    } catch (e) {
+      print('Error deleting meeting: $e');
+    }
+  }
+  */
+
 
   void _searchMeetings(String query) {
     setState(() {
@@ -270,6 +432,7 @@ class _MeetingsState extends State<Meetings> {
               TextButton(
                 onPressed: () {
                   final newMeeting = {
+                    // 'id': editIndex == null ? null : meeting?['id'], // Include ID for updates
                     'title': titleController.text,
                     'manager': managerController.text,
                     'employee': employeeController.text,
@@ -281,7 +444,11 @@ class _MeetingsState extends State<Meetings> {
                   setState(() {
                     if (editIndex == null) {
                       allMeetings.add(newMeeting);
+                      // Example: Add to API
+                      // _addMeetingToApi(newMeeting);
                     } else {
+                      // Example: Update on API
+                      // _updateMeetingOnApi(meeting!['id'], newMeeting);
                       allMeetings[editIndex] = newMeeting;
                     }
                     _applyFilters();
@@ -317,15 +484,15 @@ class _MeetingsState extends State<Meetings> {
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: 'Search',
-                        prefixIcon: Icon(Icons.search, color: kMaroon),
+                        prefixIcon: const Icon(Icons.search, color: kMaroon),
                         contentPadding: const EdgeInsets.symmetric(vertical: 0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: kMaroon),
+                          borderSide: const BorderSide(color: kMaroon),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: kMaroon, width: 2),
+                          borderSide: const BorderSide(color: kMaroon, width: 2),
                         ),
                       ),
                       onChanged: _searchMeetings,
@@ -333,7 +500,7 @@ class _MeetingsState extends State<Meetings> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(Icons.filter_list, color: kMaroon),
+                    icon: const Icon(Icons.filter_list, color: kMaroon),
                     onPressed: _showFilterDialog,
                     tooltip: 'Filter',
                   ),
@@ -404,6 +571,8 @@ class _MeetingsState extends State<Meetings> {
                                     onChanged: (val) {
                                       setState(() {
                                         meeting['minutes'] = val ?? 15;
+                                        // Example: Update minutes on API
+                                        // _updateMeetingOnApi(meeting['id'], {'minutes': val ?? 15});
                                       });
                                     },
                                   ),
@@ -414,23 +583,27 @@ class _MeetingsState extends State<Meetings> {
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.edit, color: kMaroon),
+                                    icon: const Icon(Icons.edit, color: kMaroon),
                                     onPressed: () => _showCreateOrEditDialog(meeting: meeting, editIndex: allMeetings.indexOf(meeting)),
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.delete, color: kMaroon),
+                                    icon: const Icon(Icons.delete, color: kMaroon),
                                     onPressed: () {
                                       setState(() {
+                                        // Example: Delete from API
+                                        // _deleteMeetingFromApi(meeting['id']);
                                         allMeetings.removeAt(allMeetings.indexOf(meeting));
                                         _applyFilters();
                                       });
                                     },
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.archive, color: kMaroon),
+                                    icon: const Icon(Icons.archive, color: kMaroon),
                                     onPressed: () {
                                       setState(() {
                                         meeting['isArchived'] = true;
+                                        // Example: Archive on API (update isArchived status)
+                                        // _updateMeetingOnApi(meeting['id'], {'isArchived': true});
                                         _applyFilters();
                                       });
                                     },

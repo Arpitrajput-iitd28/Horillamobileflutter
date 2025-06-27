@@ -1,46 +1,97 @@
 import 'package:flutter/material.dart';
+// Import necessary packages for API operations.
+// import 'package:http/http.dart' as http;
+// import 'dart:convert'; // For encoding/decoding JSON
 
-class PerformanceDashboard extends StatelessWidget {
+class PerformanceDashboard extends StatefulWidget {
   const PerformanceDashboard({Key? key}) : super(key: key);
 
-  static final List<Map<String, dynamic>> summaryStats = [
-    {
-      'label': 'Total employee objectives',
-      'value': 26,
-      'color': const Color.fromARGB(255, 18, 18, 18),
-    },
-    {
-      'label': 'Total key results',
-      'value': 8,
-      'color': const Color.fromARGB(255, 0, 74, 111),
-    },
-    {
-      'label': 'Total feedbacks',
-      'value': 21,
-      'color': const Color.fromARGB(255,139,45,20),
-    },
-  ];
+  @override
+  State<PerformanceDashboard> createState() => _PerformanceDashboardState();
+}
 
-// Uncomment this method for API integration and comment out the mock data above
+class _PerformanceDashboardState extends State<PerformanceDashboard> {
+  // Mock data - will be replaced by API data if integration is uncommented
+  int totalObjectives = 26;
+  int totalKeyResults = 8;
+  int totalFeedbacks = 21;
+
+  // This list will be populated dynamically from the state variables
+  List<Map<String, dynamic>> get summaryStats {
+    return [
+      {
+        'label': 'Total employee objectives',
+        'value': totalObjectives,
+        'color': const Color.fromARGB(255, 18, 18, 18),
+      },
+      {
+        'label': 'Total key results',
+        'value': totalKeyResults,
+        'color': const Color.fromARGB(255, 0, 74, 111),
+      },
+      {
+        'label': 'Total feedbacks',
+        'value': totalFeedbacks,
+        'color': const Color.fromARGB(255,139,45,20),
+      },
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Uncomment this method call for API integration
+    // fetchPerformanceSummary();
+  }
+
+  // Uncomment this method for API integration and comment out the mock data above
   /*
   Future<void> fetchPerformanceSummary() async {
-    final serverAddress = 'YOUR_API_BASE_URL'; // Replace with your server URL
-    final url = Uri.parse('$serverAddress/api/performance/summary/');
-    // Optionally add authentication headers if needed
-    final response = await http.get(url, headers: {
-      'Authorization': 'Bearer YOUR_TOKEN', // Replace with actual token
-      'Content-Type': 'application/json',
-    });
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        totalObjectives = data['total_objectives'];
-        totalKeyResults = data['total_key_results'];
-        totalFeedbacks = data['total_feedbacks'];
-      });
-    } else {
-      // Handle error, show a snackbar or fallback to mock data
-      print('Failed to fetch performance summary: ${response.statusCode}');
+    // Ensure you add http package to your pubspec.yaml:
+    // dependencies:
+    //   http: ^latest_version
+    // final serverAddress = 'YOUR_API_BASE_URL'; // Replace with your server URL
+    // final url = Uri.parse('$serverAddress/api/performance/summary/');
+    try {
+      // Optionally add authentication headers if needed
+      // final response = await http.get(url, headers: {
+      //   'Authorization': 'Bearer YOUR_TOKEN', // Replace with actual token
+      //   'Content-Type': 'application/json',
+      // });
+
+      // // Simulating a network request for demonstration
+      // await Future.delayed(Duration(seconds: 2));
+      // final response = http.Response(
+      //   json.encode({
+      //     'total_objectives': 30,
+      //     'total_key_results': 10,
+      //     'total_feedbacks': 25,
+      //   }),
+      //   200,
+      // );
+
+      // if (response.statusCode == 200) {
+      //   final data = json.decode(response.body);
+      //   setState(() {
+      //     totalObjectives = data['total_objectives'];
+      //     totalKeyResults = data['total_key_results'];
+      //     totalFeedbacks = data['total_feedbacks'];
+      //   });
+      // } else {
+      //   // Handle error, show a snackbar or fallback to mock data
+      //   print('Failed to fetch performance summary: ${response.statusCode}');
+      //   // Optionally, show a user-friendly message
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text('Failed to load dashboard data. Showing mock data.')),
+      //   );
+      // }
+    } catch (e) {
+      // Handle network errors (e.g., no internet connection)
+      print('Error fetching performance summary: $e');
+      // Optionally, show a user-friendly message
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text('Network error. Please check your connection.')),
+      // );
     }
   }
   */
@@ -65,7 +116,7 @@ class PerformanceDashboard extends StatelessWidget {
                       width: 200,
                       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                       decoration: BoxDecoration(
-                        color: Color(0xFF8B2D14),
+                        color: const Color(0xFF8B2D14),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -190,7 +241,7 @@ class _NavigationCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: Icon(icon, size: 32, color: Color.fromARGB(255, 100, 7, 0)),
+        leading: Icon(icon, size: 32, color: const Color.fromARGB(255, 100, 7, 0)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.keyboard_arrow_right),

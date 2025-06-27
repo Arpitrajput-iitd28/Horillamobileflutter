@@ -5,6 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:open_file/open_file.dart';
 
+// --- API and Connectivity Imports (Commented Out) ---
+// Uncomment these imports when you are ready to use the API integration
+// import 'package:connectivity_plus/connectivity_plus.dart';
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+
+
 const Color kMaroon = Color(0xFF800000);
 
 class RecruitmentHistoryPage extends StatefulWidget {
@@ -15,8 +22,10 @@ class RecruitmentHistoryPage extends StatefulWidget {
 }
 
 class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
+  // --- Local Data Store ---
   List<Map<String, dynamic>> history = [
     {
+      'id': 'rh_1', // Added ID for API operations
       'title': 'Front-end Developer',
       'name': 'Alice Smith',
       'dateJoined': DateTime(2025, 6, 10),
@@ -27,6 +36,7 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
       'archived': false,
     },
     {
+      'id': 'rh_2', // Added ID for API operations
       'title': 'Back-end Developer',
       'name': 'John Doe',
       'dateJoined': DateTime(2025, 6, 5),
@@ -39,6 +49,194 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
   ];
 
   String searchQuery = '';
+
+  // --- API Integration Variables (Commented Out) ---
+  // bool _isLoading = false;
+  // String? _errorMessage;
+  // final String _apiBaseUrl = 'https://your-api-endpoint.com/api/v1/recruitment-history'; // Placeholder for your API endpoint
+
+  @override
+  void initState() {
+    super.initState();
+    // // Uncomment to fetch data from API on initialization
+    // _fetchInitialHistoryFromApi();
+  }
+
+  // --- Internet Connectivity Check (Commented Out) ---
+  /*
+  Future<bool> _checkInternetConnectivity() async {
+    try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No internet connection. Please check your network.')),
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      print('Error checking connectivity: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to check internet connection.')),
+      );
+      return false;
+    }
+  }
+  */
+
+  // --- API Call Stubs (Commented Out) ---
+
+  /*
+  // Fetch all recruitment history entries
+  Future<void> _fetchInitialHistoryFromApi() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    if (!await _checkInternetConnectivity()) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final response = await http.get(Uri.parse(_apiBaseUrl));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          history = data.map((itemJson) => {
+            'id': itemJson['id'] as String,
+            'title': itemJson['title'] as String,
+            'name': itemJson['name'] as String,
+            'dateJoined': DateTime.parse(itemJson['dateJoined'] as String),
+            'imagePath': itemJson['imagePath'] as String?,
+            'linkedin': itemJson['linkedin'] as String,
+            'resume': itemJson['resume'] as String?,
+            'description': itemJson['description'] as String,
+            'archived': itemJson['archived'] as bool,
+          }).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to load history: ${response.statusCode}';
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load history. Status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error fetching history: $e';
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching history: $e')),
+      );
+    }
+  }
+
+  // Create a new recruitment history entry
+  Future<void> _createHistoryEntryApi(Map<String, dynamic> entry) async {
+    if (!await _checkInternetConnectivity()) return;
+
+    try {
+      final response = await http.post(
+        Uri.parse(_apiBaseUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'title': entry['title'],
+          'name': entry['name'],
+          'dateJoined': entry['dateJoined'].toIso8601String(),
+          'imagePath': entry['imagePath'],
+          'linkedin': entry['linkedin'],
+          'resume': entry['resume'],
+          'description': entry['description'],
+          'archived': entry['archived'],
+          // Note: 'id' might be generated by the backend
+        }),
+      );
+
+      if (response.statusCode == 201) { // Created
+        print('Entry created successfully in API.');
+        // Optionally, refetch data or update local list with response ID
+      } else {
+        print('Failed to create entry: HTTP ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create entry. Status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error creating entry: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating entry: $e')),
+      );
+    }
+  }
+
+  // Update an existing recruitment history entry
+  Future<void> _updateHistoryEntryApi(Map<String, dynamic> entry) async {
+    if (!await _checkInternetConnectivity()) return;
+
+    try {
+      final response = await http.put(
+        Uri.parse('$_apiBaseUrl/${entry['id']}'), // Assuming ID is part of the URL
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'title': entry['title'],
+          'name': entry['name'],
+          'dateJoined': entry['dateJoined'].toIso8601String(),
+          'imagePath': entry['imagePath'],
+          'linkedin': entry['linkedin'],
+          'resume': entry['resume'],
+          'description': entry['description'],
+          'archived': entry['archived'],
+        }),
+      );
+
+      if (response.statusCode == 200) { // OK
+        print('Entry updated successfully in API.');
+      } else {
+        print('Failed to update entry: HTTP ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update entry. Status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error updating entry: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating entry: $e')),
+      );
+    }
+  }
+
+  // Delete a recruitment history entry
+  Future<void> _deleteHistoryEntryApi(String entryId) async {
+    if (!await _checkInternetConnectivity()) return;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('$_apiBaseUrl/$entryId'), // Assuming ID is part of the URL
+      );
+
+      if (response.statusCode == 204) { // No Content (successful delete)
+        print('Entry deleted successfully from API.');
+      } else {
+        print('Failed to delete entry: HTTP ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete entry. Status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error deleting entry: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting entry: $e')),
+      );
+    }
+  }
+  */
 
   List<Map<String, dynamic>> get filteredHistory {
     return history.where((item) {
@@ -56,6 +254,9 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
     String linkedin = editItem?['linkedin'] ?? '';
     String? resumePath = editItem?['resume'];
     String description = editItem?['description'] ?? '';
+
+    // If editing, use the existing ID. If creating, generate a new one locally.
+    final String entryId = editItem?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
 
     final titleController = TextEditingController(text: selectedTitle);
     final nameController = TextEditingController(text: name);
@@ -86,7 +287,7 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
           }
 
           return AlertDialog(
-            title: const Text('Add Recruitment Entry', style: TextStyle(color: kMaroon)),
+            title: Text(editItem == null ? 'Add Recruitment Entry' : 'Edit Recruitment Entry', style: const TextStyle(color: kMaroon)),
             content: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,6 +410,7 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
                   }
                   setState(() {
                     final newEntry = {
+                      'id': entryId, // Use the generated/existing ID
                       'title': selectedTitle,
                       'name': name,
                       'dateJoined': dateJoined,
@@ -216,12 +418,16 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
                       'linkedin': linkedin,
                       'resume': resumePath,
                       'description': description,
-                      'archived': false,
+                      'archived': false, // Newly added or edited entries are not archived by default
                     };
                     if (editIdx != null) {
                       history[editIdx] = newEntry;
+                      // // Uncomment for API integration (Update)
+                      // _updateHistoryEntryApi(newEntry);
                     } else {
                       history.insert(0, newEntry);
+                      // // Uncomment for API integration (Create)
+                      // _createHistoryEntryApi(newEntry);
                     }
                   });
                   Navigator.pop(context);
@@ -258,12 +464,19 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
     setState(() {
       history[idx]['archived'] = true;
     });
+    // // Uncomment for API integration (Update with archived status)
+    // _updateHistoryEntryApi(history[idx]);
   }
 
   void _deleteItem(int idx) {
+    final String? entryId = history[idx]['id']; // Get the ID before removing
     setState(() {
       history.removeAt(idx);
     });
+    // // Uncomment for API integration (Delete)
+    // if (entryId != null) {
+    //   _deleteHistoryEntryApi(entryId);
+    // }
   }
 
   Future<void> _launchLinkedIn(String url) async {
@@ -340,6 +553,21 @@ class _RecruitmentHistoryPageState extends State<RecruitmentHistoryPage> {
             ),
           ),
           const Divider(thickness: 1, height: 10),
+          // // Uncomment the following lines to show loading/error state when fetching from API
+          // if (_isLoading)
+          //   const Padding(
+          //     padding: EdgeInsets.all(8.0),
+          //     child: CircularProgressIndicator(color: kMaroon),
+          //   ),
+          // if (_errorMessage != null)
+          //   Padding(
+          //     padding: const EdgeInsets.all(8.0),
+          //     child: Text(
+          //       'Error: $_errorMessage',
+          //       style: const TextStyle(color: Colors.red),
+          //       textAlign: TextAlign.center,
+          //     ),
+          //   ),
           // Cards
           Expanded(
             child: ListView.builder(

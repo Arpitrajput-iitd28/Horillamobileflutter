@@ -3,21 +3,21 @@
 >  invoice_dashboard = DONE
 
 2. Performance :-
->  bonus_points =
->  extended_dashboard =
+>  bonus_points = DONE
+>  extended_dashboard = DONE
 >  feedback =
->  meetings =
->  objectives =
->  performance_dashboard =
->  question_template =
+>  meetings = DONE
+>  objectives = DONE
+>  performance_dashboard = DONE
+>  question_template = DONE
 
 3. Recruitment :-
 >  candidates =
 >  interview = DONE
 >  pipeline =
 >  recruitment_dashboard =
->  recruitment_history =
->  recruitment_template =
+>  recruitment_history = DONE
+>  recruitment_template = 
 
 4. Resource :-
 >  assets_batches = Done

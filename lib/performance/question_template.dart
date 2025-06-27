@@ -4,6 +4,15 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+// Import necessary packages for API/database operations.
+// These would need to be added to your pubspec.yaml.
+// import 'package:http/http.dart' as http; // For making HTTP requests
+// import 'dart:convert'; // For encoding/decoding JSON
+// import 'package:sqflite/sqflite.dart'; // For local SQLite database
+// import 'package:path/path.dart'; // For joining paths (used with sqflite)
+// import 'package:firebase_core/firebase_core.dart'; // For Firebase initialization
+// import 'package:cloud_firestore/cloud_firestore.dart'; // For Firestore database
+
 const Color kMaroon = Color(0xFF800000);
 
 class QuestionTemplate extends StatefulWidget {
@@ -35,6 +44,9 @@ class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
   List<bool> selectedTemplates = [];
   Map<int, Set<int>> selectedQuestions = {}; // templateIndex -> set of question indices
 
+  // Example for a local SQLite database instance
+  // late Database _database;
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +54,77 @@ class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
     for (int i = 0; i < templates.length; i++) {
       selectedQuestions[i] = {};
     }
+    // Initialize API/Database operations here
+    // _fetchTemplatesFromApi(); // Example API call on initialization
+    // _initDatabase(); // Example database initialization
+    // _initializeFirebase(); // Example Firebase initialization
   }
+
+  // Example function to initialize a local SQLite database
+  /*
+  Future<void> _initDatabase() async {
+    // Open the database and store the reference.
+    _database = await openDatabase(
+      join(await getDatabasesPath(), 'templates_database.db'),
+      onCreate: (db, version) {
+        // Run the CREATE TABLE statement on the database.
+        return db.execute(
+          'CREATE TABLE templates(id INTEGER PRIMARY KEY, title TEXT)',
+        );
+      },
+      version: 1,
+    );
+    // You might also create a 'questions' table here and link them.
+    // await db.execute(
+    //   'CREATE TABLE questions(id INTEGER PRIMARY KEY, templateId INTEGER, text TEXT, priority TEXT, FOREIGN KEY (templateId) REFERENCES templates(id))',
+    // );
+  }
+  */
+
+  // Example function to initialize Firebase
+  /*
+  Future<void> _initializeFirebase() async {
+    await Firebase.initializeApp(
+      // options: DefaultFirebaseOptions.currentPlatform, // You would need firebase_options.dart
+    );
+    // You can now access Firestore:
+    // FirebaseFirestore.instance.collection('templates').snapshots().listen((data) {
+    //   // Update your templates list here based on Firestore data
+    // });
+  }
+  */
+
+  // Example function to fetch data from a REST API
+  /*
+  Future<void> _fetchTemplatesFromApi() async {
+    try {
+      final response = await http.get(Uri.parse('https://api.example.com/templates'));
+      if (response.statusCode == 200) {
+        final List<dynamic> fetchedData = json.decode(response.body);
+        setState(() {
+          templates = fetchedData.map((item) => {
+            'title': item['title'],
+            'questions': (item['questions'] as List).map((q) => {
+              'text': q['text'],
+              'priority': q['priority'],
+            }).toList(),
+          }).toList();
+          selectedTemplates = List.filled(templates.length, false);
+          selectedQuestions = {};
+          for (int i = 0; i < templates.length; i++) {
+            selectedQuestions[i] = {};
+          }
+        });
+      } else {
+        // Handle server errors
+        print('Failed to load templates: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle network errors
+      print('Error fetching templates: $e');
+    }
+  }
+  */
 
   List<Map<String, dynamic>> get filteredTemplates {
     if (searchQuery.isEmpty) return templates;
@@ -160,11 +242,70 @@ class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
                       });
                       selectedTemplates.add(false);
                       selectedQuestions[templates.length - 1] = {};
+
+                      // Example: Add new template to a REST API
+                      /*
+                      _addTemplateToApi({
+                        'title': newTemplateTitle,
+                        'questions': [
+                          {'text': questionText, 'priority': priority}
+                        ],
+                      });
+                      */
+
+                      // Example: Add new template to SQLite database
+                      /*
+                      _database.insert(
+                        'templates',
+                        {'title': newTemplateTitle},
+                        conflictAlgorithm: ConflictAlgorithm.replace,
+                      ).then((templateId) {
+                        // If you have a questions table, insert the question
+                        // _database.insert(
+                        //   'questions',
+                        //   {'templateId': templateId, 'text': questionText, 'priority': priority},
+                        // );
+                      });
+                      */
+
+                      // Example: Add new template to Firestore
+                      /*
+                      FirebaseFirestore.instance.collection('templates').add({
+                        'title': newTemplateTitle,
+                        'questions': [
+                          {'text': questionText, 'priority': priority}
+                        ],
+                      });
+                      */
+
                     } else {
                       final idx = templates.indexWhere((t) => t['title'] == selectedTemplate);
                       if (idx != -1) {
                         (templates[idx]['questions'] as List)
                             .add({'text': questionText, 'priority': priority});
+
+                        // Example: Update existing template on a REST API
+                        /*
+                        _updateTemplateOnApi(
+                          templates[idx]['id'], // Assuming an 'id' field for the template
+                          {'text': questionText, 'priority': priority},
+                        );
+                        */
+
+                        // Example: Update existing template in SQLite (add question)
+                        /*
+                        // You'd need to fetch the template ID first, then insert the question
+                        // into the 'questions' table with the correct templateId.
+                        */
+
+                        // Example: Update existing template in Firestore (add question)
+                        /*
+                        // You would need to get the document ID for the selected template
+                        // and then update its 'questions' array.
+                        // FirebaseFirestore.instance.collection('templates').doc(templateDocId).update({
+                        //   'questions': FieldValue.arrayUnion([{'text': questionText, 'priority': priority}])
+                        // });
+                        */
                       }
                     }
                   });
@@ -178,6 +319,46 @@ class _RecruitmentTemplatePageState extends State<QuestionTemplate> {
       },
     );
   }
+
+  // Example function to add a template to a REST API
+  /*
+  Future<void> _addTemplateToApi(Map<String, dynamic> templateData) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.example.com/templates'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(templateData),
+      );
+      if (response.statusCode == 201) { // 201 Created
+        print('Template added successfully to API');
+      } else {
+        print('Failed to add template to API: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error adding template to API: $e');
+    }
+  }
+  */
+
+  // Example function to update a template on a REST API (e.g., adding a question)
+  /*
+  Future<void> _updateTemplateOnApi(int templateId, Map<String, dynamic> questionData) async {
+    try {
+      final response = await http.put(
+        Uri.parse('https://api.example.com/templates/$templateId/questions'), // Adjust endpoint
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(questionData),
+      );
+      if (response.statusCode == 200) {
+        print('Question added/updated successfully on API');
+      } else {
+        print('Failed to update template on API: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating template on API: $e');
+    }
+  }
+  */
 
   void _showPdfDialog() async {
     List<bool> localSelectedTemplates = List.from(selectedTemplates);

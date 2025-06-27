@@ -3,6 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+// Import necessary packages for API operations.
+// You would need to add 'http' to your pubspec.yaml:
+// dependencies:
+//   http: ^0.13.3 // Or the latest compatible version
+// import 'package:http/http.dart' as http;
+// import 'dart:convert'; // For encoding/decoding JSON
 
 const Color kMaroon = Color(0xFF800000);
 
@@ -16,6 +22,7 @@ class BonusPoint extends StatefulWidget {
 class _BonusPointState extends State<BonusPoint> {
   List<Map<String, dynamic>> allBonusPoints = [
     {
+      'id': 'bp001', // Example ID for API interaction
       'employee_name': 'John Doe',
       'bonus_points': 50,
       'based_on': 'Project Completion',
@@ -24,6 +31,7 @@ class _BonusPointState extends State<BonusPoint> {
       'isArchived': false,
     },
     {
+      'id': 'bp002', // Example ID for API interaction
       'employee_name': 'Jane Smith',
       'bonus_points': 30,
       'based_on': 'Teamwork',
@@ -32,6 +40,7 @@ class _BonusPointState extends State<BonusPoint> {
       'isArchived': false,
     },
     {
+      'id': 'bp003', // Example ID for API interaction
       'employee_name': 'Alice Johnson',
       'bonus_points': 40,
       'based_on': 'Innovation',
@@ -49,8 +58,157 @@ class _BonusPointState extends State<BonusPoint> {
   @override
   void initState() {
     super.initState();
+    // Uncomment this for API integration:
+    // _fetchBonusPointsFromApi();
     filteredBonusPoints = List.from(allBonusPoints);
   }
+
+  // Example function to fetch bonus points from a REST API
+  /*
+  Future<void> _fetchBonusPointsFromApi() async {
+    // final serverAddress = 'YOUR_API_BASE_URL'; // Replace with your server URL
+    // final url = Uri.parse('$serverAddress/api/bonus_points/');
+    try {
+      // final response = await http.get(url, headers: {
+      //   'Authorization': 'Bearer YOUR_TOKEN', // Replace with actual token
+      //   'Content-Type': 'application/json',
+      // });
+
+      // // Simulate a network request and response for demonstration
+      // await Future.delayed(Duration(seconds: 1)); // Simulate network delay
+      // final response = http.Response(
+      //   json.encode([
+      //     {
+      //       'id': 'api_bp001',
+      //       'employee_name': 'API John',
+      //       'bonus_points': 60,
+      //       'based_on': 'API Project',
+      //       'position': 'API Dev',
+      //       'date': '2025-07-05T00:00:00Z', // ISO 8601 string
+      //       'isArchived': false,
+      //     },
+      //     {
+      //       'id': 'api_bp002',
+      //       'employee_name': 'API Jane',
+      //       'bonus_points': 35,
+      //       'based_on': 'API Teamwork',
+      //       'position': 'API Designer',
+      //       'date': '2025-07-06T00:00:00Z',
+      //       'isArchived': false,
+      //     },
+      //   ]),
+      //   200,
+      // );
+
+      // if (response.statusCode == 200) {
+      //   final List<dynamic> fetchedData = json.decode(response.body);
+      //   setState(() {
+      //     allBonusPoints = fetchedData.map((item) => {
+      //       'id': item['id'],
+      //       'employee_name': item['employee_name'],
+      //       'bonus_points': item['bonus_points'],
+      //       'based_on': item['based_on'],
+      //       'position': item['position'],
+      //       'date': DateTime.parse(item['date']), // Parse ISO 8601 string
+      //       'isArchived': item['isArchived'],
+      //     }).toList();
+      //     _applyFilters(); // Re-apply filters after data refresh
+      //   });
+      // } else {
+      //   print('Failed to fetch bonus points: ${response.statusCode}');
+      //   // Optionally show a user-friendly message
+      // }
+    } catch (e) {
+      print('Error fetching bonus points: $e');
+      // Optionally show a user-friendly message
+    }
+  }
+  */
+
+  // Example function to add a bonus point to a REST API
+  /*
+  Future<void> _addBonusPointToApi(Map<String, dynamic> pointData) async {
+    // final serverAddress = 'YOUR_API_BASE_URL';
+    // final url = Uri.parse('$serverAddress/api/bonus_points/');
+    try {
+      // final response = await http.post(
+      //   url,
+      //   headers: {
+      //     'Authorization': 'Bearer YOUR_TOKEN',
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: json.encode({
+      //     ...pointData,
+      //     'date': pointData['date'].toIso8601String(), // Convert DateTime to ISO 8601 string
+      //   }),
+      // );
+      // if (response.statusCode == 201) { // 201 Created
+      //   print('Bonus point added successfully to API');
+      //   // Optionally, re-fetch bonus points to update UI
+      //   // _fetchBonusPointsFromApi();
+      // } else {
+      //   print('Failed to add bonus point: ${response.statusCode}');
+      // }
+    } catch (e) {
+      print('Error adding bonus point: $e');
+    }
+  }
+  */
+
+  // Example function to update a bonus point on a REST API
+  /*
+  Future<void> _updateBonusPointOnApi(String pointId, Map<String, dynamic> pointData) async {
+    // final serverAddress = 'YOUR_API_BASE_URL';
+    // final url = Uri.parse('$serverAddress/api/bonus_points/$pointId/'); // Assuming ID in URL
+    try {
+      // final response = await http.put( // Or PATCH for partial updates
+      //   url,
+      //   headers: {
+      //     'Authorization': 'Bearer YOUR_TOKEN',
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: json.encode({
+      //     ...pointData,
+      //     'date': pointData['date'].toIso8601String(),
+      //   }),
+      // );
+      // if (response.statusCode == 200) {
+      //   print('Bonus point updated successfully on API');
+      //   // Optionally, re-fetch bonus points to update UI
+      //   // _fetchBonusPointsFromApi();
+      // } else {
+      //   print('Failed to update bonus point: ${response.statusCode}');
+      // }
+    } catch (e) {
+      print('Error updating bonus point: $e');
+    }
+  }
+  */
+
+  // Example function to delete a bonus point from a REST API
+  /*
+  Future<void> _deleteBonusPointFromApi(String pointId) async {
+    // final serverAddress = 'YOUR_API_BASE_URL';
+    // final url = Uri.parse('$serverAddress/api/bonus_points/$pointId/');
+    try {
+      // final response = await http.delete(
+      //   url,
+      //   headers: {
+      //     'Authorization': 'Bearer YOUR_TOKEN',
+      //   },
+      // );
+      // if (response.statusCode == 204) { // 204 No Content for successful deletion
+      //   print('Bonus point deleted successfully from API');
+      //   // Optionally, re-fetch bonus points to update UI
+      //   // _fetchBonusPointsFromApi();
+      // } else {
+      //   print('Failed to delete bonus point: ${response.statusCode}');
+      // }
+    } catch (e) {
+      print('Error deleting bonus point: $e');
+    }
+  }
+  */
 
   void _searchBonusPoints(String query) {
     setState(() {
@@ -233,6 +391,7 @@ class _BonusPointState extends State<BonusPoint> {
               TextButton(
                 onPressed: () {
                   final newPoint = {
+                    // 'id': editIndex == null ? null : point?['id'], // Include ID for updates
                     'employee_name': employeeController.text,
                     'bonus_points': int.tryParse(pointsController.text) ?? 0,
                     'based_on': basedOnController.text,
@@ -243,7 +402,11 @@ class _BonusPointState extends State<BonusPoint> {
                   setState(() {
                     if (editIndex == null) {
                       allBonusPoints.add(newPoint);
+                      // Example: Add to API
+                      // _addBonusPointToApi(newPoint);
                     } else {
+                      // Example: Update on API
+                      // _updateBonusPointOnApi(point!['id'], newPoint);
                       allBonusPoints[editIndex] = newPoint;
                     }
                     _applyFilters();
@@ -316,15 +479,15 @@ class _BonusPointState extends State<BonusPoint> {
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: 'Search',
-                        prefixIcon: Icon(Icons.search, color: kMaroon),
+                        prefixIcon: const Icon(Icons.search, color: kMaroon),
                         contentPadding: const EdgeInsets.symmetric(vertical: 0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: kMaroon),
+                          borderSide: const BorderSide(color: kMaroon),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: kMaroon, width: 2),
+                          borderSide: const BorderSide(color: kMaroon, width: 2),
                         ),
                       ),
                       onChanged: _searchBonusPoints,
@@ -333,14 +496,14 @@ class _BonusPointState extends State<BonusPoint> {
                   const SizedBox(width: 8),
                   // Filter
                   IconButton(
-                    icon: Icon(Icons.filter_list, color: kMaroon),
+                    icon: const Icon(Icons.filter_list, color: kMaroon),
                     onPressed: _showFilterDialog,
                     tooltip: 'Filter',
                   ),
                   const SizedBox(width: 8),
                   // Download PDF
                   IconButton(
-                    icon: Icon(Icons.picture_as_pdf, color: kMaroon),
+                    icon: const Icon(Icons.picture_as_pdf, color: kMaroon),
                     onPressed: _generatePdf,
                     tooltip: 'Download PDF',
                   ),
@@ -409,23 +572,27 @@ class _BonusPointState extends State<BonusPoint> {
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.edit, color: kMaroon),
+                                    icon: const Icon(Icons.edit, color: kMaroon),
                                     onPressed: () => _showCreateOrEditDialog(point: point, editIndex: allBonusPoints.indexOf(point)),
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.delete, color: kMaroon),
+                                    icon: const Icon(Icons.delete, color: kMaroon),
                                     onPressed: () {
                                       setState(() {
+                                        // Example: Delete from API
+                                        // _deleteBonusPointFromApi(point['id']);
                                         allBonusPoints.removeAt(allBonusPoints.indexOf(point));
                                         _applyFilters();
                                       });
                                     },
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.archive, color: kMaroon),
+                                    icon: const Icon(Icons.archive, color: kMaroon),
                                     onPressed: () {
                                       setState(() {
                                         point['isArchived'] = true;
+                                        // Example: Archive on API (update isArchived status)
+                                        // _updateBonusPointOnApi(point['id'], {'isArchived': true});
                                         _applyFilters();
                                       });
                                     },
