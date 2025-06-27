@@ -2,6 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:fullscreen_image_viewer/fullscreen_image_viewer.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'clear_request.dart';
+
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+// // === Invoice API Service ===
+// class InvoiceService { ... }
 
 const Color kMaroon = Color(0xFF800000);
 
@@ -13,27 +23,38 @@ class InvoiceDashboard extends StatefulWidget {
 }
 
 class _InvoiceDashboardState extends State<InvoiceDashboard> {
-  final List<Map<String, dynamic>> _history = [
+  final bool isAdmin = true; // Set to false for regular users
+
+  // final InvoiceService invoiceService = InvoiceService();
+
+  List<Map<String, dynamic>> _history = [
     {
-      'name': 'John Doe',
-      'attachedFiles': [],
+      'files': [],
       'comments': 'Taxi fare for client meeting',
       'dateTime': DateTime(2025, 6, 20, 10, 30),
       'status': 'pending',
+      'applicant': 'John Doe',
     },
     {
-      'name': 'Alice Smith',
-      'attachedFiles': [],
+      'files': [],
       'comments': 'Lunch with team',
       'dateTime': DateTime(2025, 6, 19, 9, 0),
       'status': 'cleared',
+      'applicant': 'Alice Smith',
     },
   ];
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // _loadHistory();
+  // }
+  // Future<void> _loadHistory() async { ... }
+
   void _showApplyDialog() {
-    String name = '';
-    String comments = '';
     List<PlatformFile> attachedFiles = [];
+    String comments = '';
+    List<Map<String, dynamic>> cameraFiles = [];
 
     showDialog(
       context: context,
@@ -52,18 +73,81 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
             }
           }
 
-          Widget filePreview(PlatformFile file) {
-            if (['jpg', 'jpeg', 'png'].contains(file.extension?.toLowerCase())) {
+          Future<void> takePhoto() async {
+            final picker = ImagePicker();
+            final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+            if (photo != null) {
+              setLocalState(() {
+                cameraFiles.add({
+                  'name': photo.name,
+                  'path': photo.path,
+                  'extension': photo.path.split('.').last,
+                  'source': 'camera',
+                });
+              });
+            }
+          }
+
+          Widget filePreview(dynamic file) {
+            String ext;
+            String filePath;
+            String? name;
+            if (file is PlatformFile) {
+              ext = (file.extension ?? '').toLowerCase();
+              filePath = file.path!;
+              name = file.name;
+            } else if (file is Map<String, dynamic>) {
+              ext = (file['extension'] ?? '').toLowerCase();
+              filePath = file['path'];
+              name = file['name'];
+            } else {
+              return const SizedBox.shrink();
+            }
+
+            if (['jpg', 'jpeg', 'png'].contains(ext)) {
               return Padding(
                 padding: const EdgeInsets.only(right: 8, top: 8),
-                child: Image.file(
-                  File(file.path!),
-                  height: 50,
-                  width: 50,
-                  fit: BoxFit.cover,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        FullscreenImageViewer.open(
+                          context: context,
+                          child: Image.file(File(filePath)),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(filePath),
+                          height: 80,
+                          width: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.download, color: kMaroon, size: 20),
+                      tooltip: 'Download',
+                      onPressed: () async {
+                        final dir = await getExternalStorageDirectory();
+                        await FlutterDownloader.enqueue(
+                          url: 'file://$filePath',
+                          savedDir: dir!.path,
+                          fileName: name,
+                          showNotification: true,
+                          openFileFromNotification: true,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Download started!')),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               );
-            } else if (file.extension?.toLowerCase() == 'pdf') {
+            } else if (ext == 'pdf') {
               return Padding(
                 padding: const EdgeInsets.only(right: 8, top: 8),
                 child: Row(
@@ -72,12 +156,29 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
                     const Icon(Icons.picture_as_pdf, color: Colors.red, size: 32),
                     const SizedBox(width: 4),
                     SizedBox(
-                      width: 60,
+                      width: 90,
                       child: Text(
-                        file.name,
+                        name ?? '',
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 13),
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.download, color: kMaroon, size: 20),
+                      tooltip: 'Download',
+                      onPressed: () async {
+                        final dir = await getExternalStorageDirectory();
+                        await FlutterDownloader.enqueue(
+                          url: 'file://$filePath',
+                          savedDir: dir!.path,
+                          fileName: name,
+                          showNotification: true,
+                          openFileFromNotification: true,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Download started!')),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -88,24 +189,37 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
           }
 
           return AlertDialog(
-            title: const Text('Apply for Reimbursement'),
+            title: const Text('Apply for Reimbursement', style: TextStyle(color: kMaroon)),
             content: SingleChildScrollView(
               child: Column(
                 children: [
-                  TextField(
-                    decoration: const InputDecoration(labelText: 'Name'),
-                    onChanged: (val) => name = val,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(backgroundColor: kMaroon),
+                          icon: const Icon(Icons.attach_file),
+                          label: const Text('Attach Files'),
+                          onPressed: pickFiles,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(backgroundColor: kMaroon),
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Take Photo'),
+                          onPressed: takePhoto,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(backgroundColor: kMaroon),
-                    icon: const Icon(Icons.attach_file , color: Colors.black87,),
-                    label: const Text('Attach Files', style: TextStyle(color: Colors.black)),
-                    onPressed: pickFiles,
-                  ),
-                  if (attachedFiles.isNotEmpty)
+                  if (attachedFiles.isNotEmpty || cameraFiles.isNotEmpty)
                     Wrap(
-                      children: attachedFiles.map(filePreview).toList(),
+                      children: [
+                        ...attachedFiles.map(filePreview),
+                        ...cameraFiles.map(filePreview),
+                      ],
                     ),
                   const SizedBox(height: 10),
                   TextField(
@@ -119,33 +233,37 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+                child: const Text('Cancel', style: TextStyle(color: kMaroon)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: kMaroon),
-                onPressed: () {
-                  if (name.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all required fields.')),
-                    );
-                    return;
-                  }
+                onPressed: () async {
+                  // === API version: ===
+                  // await invoiceService.submitRequest(
+                  //   [...attachedFiles.map((f) => File(f.path!)), ...cameraFiles.map((f) => File(f['path']))],
+                  //   comments,
+                  // );
+                  // await _loadHistory();
+
                   setState(() {
                     _history.insert(0, {
-                      'name': name,
-                      'attachedFiles': attachedFiles.map((f) => {
-                        'name': f.name,
-                        'path': f.path,
-                        'extension': f.extension,
-                      }).toList(),
+                      'files': [
+                        ...attachedFiles.map((f) => {
+                              'name': f.name,
+                              'path': f.path,
+                              'extension': f.extension,
+                            }),
+                        ...cameraFiles
+                      ],
                       'comments': comments,
                       'dateTime': DateTime.now(),
                       'status': 'pending',
+                      'applicant': 'Current User', // Replace with actual user in real app
                     });
                   });
                   Navigator.pop(context);
                 },
-                child: const Text('Done', style: TextStyle(color: Colors.black)),
+                child: const Text('Done'),
               ),
             ],
           );
@@ -163,12 +281,130 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
     );
   }
 
+  void _showHistoryDetailDialog(Map<String, dynamic> item) {
+    final dateStr = DateFormat('yyyy-MM-dd – kk:mm').format(item['dateTime']);
+    showDialog(
+      context: context,
+      builder: (context) {
+        Widget filePreview(Map<String, dynamic> file) {
+          final ext = (file['extension'] ?? '').toLowerCase();
+          if (['jpg', 'jpeg', 'png'].contains(ext)) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8, top: 8),
+              child: GestureDetector(
+                onTap: () {
+                  FullscreenImageViewer.open(
+                    context: context,
+                    child: Image.file(File(file['path'])),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(file['path']),
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            );
+          } else if (ext == 'pdf') {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8, top: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.picture_as_pdf, color: Colors.red, size: 32),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    width: 90,
+                    child: Text(
+                      file['name'],
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.download, color: kMaroon, size: 20),
+                    tooltip: 'Download',
+                    onPressed: () async {
+                      final dir = await getExternalStorageDirectory();
+                      await FlutterDownloader.enqueue(
+                        url: 'file://${file['path']}',
+                        savedDir: dir!.path,
+                        fileName: file['name'],
+                        showNotification: true,
+                        openFileFromNotification: true,
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Download started!')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return const SizedBox.shrink();
+          }
+        }
+
+        return AlertDialog(
+          title: const Text('Reimbursement Details', style: TextStyle(color: kMaroon)),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Date & Time: $dateStr', style: const TextStyle(color: kMaroon)),
+                const SizedBox(height: 8),
+                Text('Comments:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(item['comments'] ?? ''),
+                const SizedBox(height: 8),
+                if (item['files'] != null && (item['files'] as List).isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Attached Files:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Wrap(
+                        children: (item['files'] as List).map<Widget>((f) => filePreview(Map<String, dynamic>.from(f))).toList(),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text('Status: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Chip(
+                      label: Text(
+                        item['status'] == 'cleared' ? 'Cleared' : 'Pending',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: item['status'] == 'cleared' ? Colors.green : Colors.red,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close', style: TextStyle(color: kMaroon)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reimbursements/Invoice'),
-        backgroundColor: kMaroon,
+        title: const Text('Reimbursements', style: TextStyle(color: kMaroon)),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: kMaroon),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -193,31 +429,46 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
-                        foregroundColor: kMaroon,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  if (isAdmin)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          foregroundColor: kMaroon,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: _navigateToClearRequestPage,
+                        child: const Text('Approve', style: TextStyle(fontSize: 16)),
                       ),
-                      onPressed: _navigateToClearRequestPage,
-                      child: const Text('Clear Request', style: TextStyle(fontSize: 16)),
                     ),
-                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             const Divider(thickness: 1, height: 32),
-            // History List
+            // History List with Refresh Icon
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('My History', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kMaroon)),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: kMaroon),
+                        tooltip: 'Refresh',
+                        onPressed: () async {
+                          // === API version: ===
+                          // await _loadHistory();
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   ..._history.map((item) => _historyCard(item)).toList(),
                   if (_history.isEmpty)
@@ -241,135 +492,73 @@ class _InvoiceDashboardState extends State<InvoiceDashboard> {
       commentPreview = commentPreview.substring(0, 50) + '...';
     }
 
-    Widget fileSection;
-    final files = item['attachedFiles'] as List?;
-    if (files != null && files.isNotEmpty) {
-      fileSection = Wrap(
-        children: files.map<Widget>((fileMap) {
-          final file = fileMap as Map<String, dynamic>;
-          final ext = (file['extension'] ?? '').toLowerCase();
-          if (['jpg', 'jpeg', 'png'].contains(ext)) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8, top: 8),
-              child: Image.file(
-                File(file['path']),
-                height: 50,
-                width: 50,
-                fit: BoxFit.cover,
-              ),
-            );
-          } else if (ext == 'pdf') {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8, top: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+    return GestureDetector(
+      onTap: () => _showHistoryDetailDialog(item),
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  const Icon(Icons.picture_as_pdf, color: Color.fromARGB(255, 164, 15, 4), size: 32),
-                  const SizedBox(width: 4),
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      file['name'],
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12),
+                  Chip(
+                    label: Text(
+                      item['status'] == 'cleared' ? 'Cleared' : 'Pending',
+                      style: const TextStyle(color: Colors.white),
                     ),
+                    backgroundColor: item['status'] == 'cleared' ? Colors.green : Colors.red,
                   ),
+                  const Spacer(),
+                  Text(dateStr, style: const TextStyle(color: Colors.black54, fontSize: 12)),
                 ],
               ),
-            );
-          } else {
-            return const SizedBox.shrink();
-          }
-        }).toList(),
-      );
-    } else {
-      fileSection = const Row(
-        children: [
-          Icon(Icons.receipt_long, color: kMaroon, size: 32),
-          SizedBox(width: 8),
-          Text("No files attached", style: TextStyle(color: Colors.grey)),
-        ],
-      );
-    }
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const Spacer(),
-                Chip(
-                  label: Text(
-                    item['status'] == 'cleared' ? 'Cleared' : 'Pending',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  backgroundColor: item['status'] == 'cleared' ? const Color.fromARGB(255, 5, 92, 8) : const Color.fromARGB(255, 120, 14, 7),
+              const SizedBox(height: 6),
+              if (item['files'] != null && (item['files'] as List).isNotEmpty)
+                Wrap(
+                  children: (item['files'] as List).map<Widget>((file) {
+                    final ext = (file['extension'] ?? '').toLowerCase();
+                    if (['jpg', 'jpeg', 'png'].contains(ext)) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8, top: 8),
+                        child: Image.file(
+                          File(file['path']),
+                          height: 40,
+                          width: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    } else if (ext == 'pdf') {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8, top: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.picture_as_pdf, color: Colors.red, size: 22),
+                            const SizedBox(width: 4),
+                            SizedBox(
+                              width: 40,
+                              child: Text(
+                                file['name'],
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return const SizedBox.shrink();
+                    }
+                  }).toList(),
                 ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            fileSection,
-            const SizedBox(height: 6),
-            _infoRow('Comments', commentPreview),
-            _infoRow('Date & Time', dateStr),
-          ],
+              const SizedBox(height: 6),
+              Text('Comments: $commentPreview', style: const TextStyle(color: kMaroon)),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
-  }
-}
-
-// HR's Clear Request Page (to be designed later)
-class ClearRequestPage extends StatelessWidget {
-  final List<Map<String, dynamic>> history;
-  const ClearRequestPage({Key? key, required this.history}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    // Placeholder for future HR functionality
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Clear Requests'),
-        backgroundColor: kMaroon,
-      ),
-      body: ListView.builder(
-        itemCount: history.length,
-        itemBuilder: (context, idx) {
-          final item = history[idx];
-          final dateStr = DateFormat('yyyy-MM-dd – kk:mm').format(item['dateTime']);
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: ListTile(
-              title: Text(item['name']),
-              subtitle: Text('Requested on $dateStr'),
-              trailing: Text(
-                item['status'] == 'cleared' ? "Cleared" : "Pending",
-                style: TextStyle(
-                  color: item['status'] == 'cleared' ? const Color.fromARGB(255, 0, 75, 3) : const Color.fromARGB(255, 201, 23, 10),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

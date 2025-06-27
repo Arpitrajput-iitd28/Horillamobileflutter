@@ -1,87 +1,418 @@
+// lib/assets_view_single_file.dart (or replace content of your main.dart)
 import 'package:flutter/material.dart';
-import 'package:dropdown_search/dropdown_search.dart'; // Re-enabled import
+// Uncomment these imports when you are ready to use the API integration
+// import 'package:connectivity_plus/connectivity_plus.dart';
 // import 'package:http/http.dart' as http;
 // import 'dart:convert';
 
-// // === Asset View API Service ===
-// class AssetViewService {
-//   static const String baseUrl = 'https://yourapi.com/assets';
+// =============================================================================
+// SECTION 1: CENTRALIZED CONSTANTS AND DATA MODELS
+// =============================================================================
 
-//   // Fetch all categories and assets
-//   Future<List<Map<String, dynamic>>> fetchCategories() async {
-//     final response = await http.get(Uri.parse(baseUrl));
-//     if (response.statusCode == 200) {
-//       final List<dynamic> data = jsonDecode(response.body);
-//       return List<Map<String, dynamic>>.from(data);
-//     } else {
-//       throw Exception('Failed to load categories');
-//     }
-//   }
-
-//   // Add a new asset (to a category)
-//   Future<void> addAsset(String category, Map<String, dynamic> asset) async {
-//     final url = '$baseUrl/$category/assets';
-//     final response = await http.post(
-//       Uri.parse(url),
-//       headers: {'Content-Type': 'application/json'},
-//       body: jsonEncode(asset),
-//     );
-//     if (response.statusCode != 201) {
-//       throw Exception('Failed to add asset');
-//     }
-//   }
-
-//   // Add a new category
-//   Future<void> addCategory(String categoryName, Map<String, dynamic> firstAsset) async {
-//     final url = '$baseUrl';
-//     final response = await http.post(
-//       Uri.parse(url),
-//       headers: {'Content-Type': 'application/json'},
-//       body: jsonEncode({
-//         'name': categoryName,
-//         'assets': [firstAsset],
-//       }),
-//     );
-//     if (response.statusCode != 201) {
-//       throw Exception('Failed to add category');
-//     }
-//   }
-
-//   // Edit asset
-//   Future<void> editAsset(String category, String assetId, Map<String, dynamic> updatedAsset) async {
-//     final url = '$baseUrl/$category/assets/$assetId';
-//     final response = await http.put(
-//       Uri.parse(url),
-//       headers: {'Content-Type': 'application/json'},
-//       body: jsonEncode(updatedAsset),
-//     );
-//     if (response.statusCode != 200) {
-//       throw Exception('Failed to update asset');
-//     }
-//   }
-
-//   // Archive asset
-//   Future<void> archiveAsset(String category, String assetId) async {
-//     final url = '$baseUrl/$category/assets/$assetId/archive';
-//     final response = await http.post(Uri.parse(url));
-//     if (response.statusCode != 200) {
-//       throw Exception('Failed to archive asset');
-//     }
-//   }
-
-//   // Delete asset
-//   Future<void> deleteAsset(String category, String assetId) async {
-//     final url = '$baseUrl/$category/assets/$assetId';
-//     final response = await http.delete(Uri.parse(url));
-//     if (response.statusCode != 200 && response.statusCode != 204) {
-//       throw Exception('Failed to delete asset');
-//     }
-//   }
-// }
-
-
-// Define your primary color
+// === Centralized Constants ===
 const Color kMaroon = Color(0xFF800000);
+
+// === Centralized AssetBatch Model (Represents a Category) ===
+class AssetBatch {
+  final String? id; // For API interaction, optional for mock data
+  final String batchNo; // Unique identifier for the batch/category
+  final String title; // The display name for the category
+
+  AssetBatch({
+    this.id,
+    required this.batchNo,
+    required this.title,
+  });
+
+  // // Uncomment this section when ready for API integration
+  // // Factory constructor to create an AssetBatch instance from a JSON map.
+  // factory AssetBatch.fromJson(Map<String, dynamic> json) {
+  //   return AssetBatch(
+  //     id: json['id'] as String?,
+  //     batchNo: json['batchNo'] as String,
+  //     title: json['title'] as String,
+  //   );
+  // }
+
+  // // Uncomment this section when ready for API integration
+  // // Converts an AssetBatch instance to a JSON map, typically for sending to an API.
+  // Map<String, dynamic> toJson() {
+  //   return {
+  //     'batchNo': batchNo,
+  //     'title': title,
+  //   };
+  // }
+}
+
+// === Centralized Asset Model (Represents an Individual Asset Item) ===
+class Asset {
+  final String? id; // For API interaction, optional for mock data
+  final String name; // Name of the asset (e.g., "ASUS Zenbook")
+  final String trackingId; // Unique tracking ID for the asset
+  final String batchNo; // Links this asset to its parent AssetBatch (category)
+  final String status; // 'Available', 'Borrowed'
+
+  Asset({
+    this.id,
+    required this.name,
+    required this.trackingId,
+    required this.batchNo,
+    required this.status,
+  });
+
+  // // Uncomment this section when ready for API integration
+  // // Factory constructor to create an Asset instance from a JSON map.
+  // factory Asset.fromJson(Map<String, dynamic> json) {
+  //   return Asset(
+  //     id: json['id'] as String?,
+  //     name: json['name'] as String,
+  //     trackingId: json['trackingId'] as String,
+  //     batchNo: json['batchNo'] as String,
+  //     status: json['status'] as String,
+  //   );
+  // }
+
+  // // Uncomment this section when ready for API integration
+  // // Converts an Asset instance to a JSON map.
+  // Map<String, dynamic> toJson() {
+  //   return {
+  //     'name': name,
+  //     'trackingId': trackingId,
+  //     'batchNo': batchNo,
+  //     'status': status,
+  //   };
+  // }
+}
+
+
+// =============================================================================
+// SECTION 2: CREATE/EDIT ASSET DIALOG
+// =============================================================================
+
+// Define callback types for clarity
+typedef OnSaveAssetCallback = void Function(AssetBatch? newCategory, Asset newAsset);
+
+class CreateEditAssetDialog extends StatefulWidget {
+  final List<AssetBatch> existingCategories; // List of categories for selection
+  final OnSaveAssetCallback onSave; // Callback to return the new/updated asset
+
+  const CreateEditAssetDialog({
+    Key? key,
+    required this.existingCategories,
+    required this.onSave,
+  }) : super(key: key);
+
+  @override
+  _CreateEditAssetDialogState createState() => _CreateEditAssetDialogState();
+}
+
+class _CreateEditAssetDialogState extends State<CreateEditAssetDialog> {
+  // --- Form Controllers ---
+  late TextEditingController _newBatchNoController;
+  late TextEditingController _newCategoryTitleController;
+  late TextEditingController _assetNameController;
+  late TextEditingController _trackingIdController;
+
+  // --- Local State for Dialog Logic ---
+  String? _selectedCategoryBatchNo; // Holds batchNo of selected existing category
+  String _currentStatus = 'Available'; // Default asset status
+  bool _isNewCategoryMode = true; // True for creating new category, false for adding to existing
+
+  // Focus node for asset name for better UX
+  late FocusNode _assetNameFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _newBatchNoController = TextEditingController();
+    _newCategoryTitleController = TextEditingController();
+    _assetNameController = TextEditingController();
+    _trackingIdController = TextEditingController();
+    _assetNameFocusNode = FocusNode();
+
+    // If there are no existing categories, force new category mode
+    if (widget.existingCategories.isEmpty) {
+      _isNewCategoryMode = true;
+    } else {
+      // If there are existing categories, default to adding to existing
+      _isNewCategoryMode = false;
+      _selectedCategoryBatchNo = widget.existingCategories.first.batchNo;
+    }
+  }
+
+  @override
+  void dispose() {
+    _newBatchNoController.dispose();
+    _newCategoryTitleController.dispose();
+    _assetNameController.dispose();
+    _trackingIdController.dispose();
+    _assetNameFocusNode.dispose();
+    super.dispose();
+  }
+
+  // --- Utility Functions ---
+  void _clearAssetFields() {
+    _assetNameController.clear();
+    _trackingIdController.clear();
+    _currentStatus = 'Available'; // Reset to default status
+  }
+
+  void _onSavePressed() {
+    // --- Validate Category (Batch) Information ---
+    AssetBatch? newCategory;
+    String finalBatchNo;
+
+    if (_isNewCategoryMode) {
+      // New category creation logic
+      final batchNo = _newBatchNoController.text.trim();
+      final categoryTitle = _newCategoryTitleController.text.trim();
+
+      if (batchNo.isEmpty || categoryTitle.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('New Category Batch Number and Title are required.')),
+        );
+        return;
+      }
+      if (widget.existingCategories.any((cat) => cat.batchNo.toLowerCase() == batchNo.toLowerCase())) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Batch Number already exists as a category.')),
+        );
+        return;
+      }
+      newCategory = AssetBatch(id: DateTime.now().millisecondsSinceEpoch.toString() + 'cat', batchNo: batchNo, title: categoryTitle);
+      finalBatchNo = batchNo;
+    } else {
+      // Adding to existing category
+      if (_selectedCategoryBatchNo == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select an existing category.')),
+        );
+        return;
+      }
+      finalBatchNo = _selectedCategoryBatchNo!;
+    }
+
+    // --- Validate Asset Information ---
+    final assetName = _assetNameController.text.trim();
+    final trackingId = _trackingIdController.text.trim();
+
+    if (assetName.isEmpty || trackingId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Asset Name and Tracking ID are required.')),
+      );
+      return;
+    }
+
+    // Create the new Asset object
+    final newAsset = Asset(
+      id: DateTime.now().millisecondsSinceEpoch.toString() + 'asset', // Unique ID for mock data
+      name: assetName,
+      trackingId: trackingId,
+      batchNo: finalBatchNo, // Link to the chosen/new category
+      status: _currentStatus,
+    );
+
+    // Call the parent's onSave callback
+    widget.onSave(newCategory, newAsset);
+    Navigator.pop(context); // Close the dialog
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent, // Make Dialog background transparent
+      child: Material(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        elevation: 24,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Add Asset Item',
+                    style: TextStyle(color: kMaroon, fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // --- Category Selection/Creation Toggle ---
+                if (widget.existingCategories.isNotEmpty)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ChoiceChip(
+                        label: Text('New', style: TextStyle(color: _isNewCategoryMode ? Colors.white : kMaroon)),
+                        selected: _isNewCategoryMode,
+                        selectedColor: kMaroon,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            _isNewCategoryMode = selected;
+                            if (_isNewCategoryMode) {
+                              _selectedCategoryBatchNo = null; // Clear selection if switching to new category
+                            }
+                            _clearAssetFields(); // Clear asset fields on mode switch
+                          });
+                        },
+                      ),
+                      ChoiceChip(
+                        label: Text('Existing', style: TextStyle(color: !_isNewCategoryMode ? Colors.white : kMaroon)),
+                        selected: !_isNewCategoryMode,
+                        selectedColor: kMaroon,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            _isNewCategoryMode = !selected;
+                            if (!_isNewCategoryMode && widget.existingCategories.isNotEmpty) {
+                              _selectedCategoryBatchNo = widget.existingCategories.first.batchNo; // Auto-select first
+                            }
+                            _clearAssetFields(); // Clear asset fields on mode switch
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 10),
+
+                // --- New Category Fields (Conditional) ---
+                if (_isNewCategoryMode) ...[
+                  TextField(
+                    controller: _newBatchNoController,
+                    decoration: InputDecoration(
+                      labelText: 'New Category Batch Number',
+                      labelStyle: TextStyle(color: kMaroon),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: kMaroon)),
+                    ),
+                    style: TextStyle(color: kMaroon),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _newCategoryTitleController,
+                    decoration: InputDecoration(
+                      labelText: 'New Category Title',
+                      labelStyle: TextStyle(color: kMaroon),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: kMaroon)),
+                    ),
+                    style: TextStyle(color: kMaroon),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // --- Existing Category Dropdown (Conditional) ---
+                if (!_isNewCategoryMode && widget.existingCategories.isNotEmpty) ...[
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategoryBatchNo,
+                    decoration: InputDecoration(
+                      labelText: 'Select Category',
+                      labelStyle: TextStyle(color: kMaroon),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: kMaroon)),
+                    ),
+                    items: widget.existingCategories.map((category) {
+                      return DropdownMenuItem(
+                        value: category.batchNo,
+                        child: Text('${category.title} (${category.batchNo})', style: TextStyle(color: kMaroon)),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCategoryBatchNo = value;
+                        // No need to clear asset fields here as we are staying within the same "Add asset to existing category" mode
+                      });
+                    },
+                    dropdownColor: Colors.white,
+                    style: TextStyle(color: kMaroon),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                if (!_isNewCategoryMode && widget.existingCategories.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: Text(
+                      'No existing categories. Please create a new one.',
+                      style: TextStyle(color: Colors.red.shade700),
+                    ),
+                  ),
+
+                // --- Asset Details Fields ---
+                TextField(
+                  controller: _assetNameController,
+                  focusNode: _assetNameFocusNode,
+                  decoration: InputDecoration(
+                    labelText: 'Asset Name',
+                    labelStyle: TextStyle(color: kMaroon),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: kMaroon)),
+                  ),
+                  style: TextStyle(color: kMaroon),
+                  textInputAction: TextInputAction.next, // Go to next field on Enter
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _trackingIdController,
+                  decoration: InputDecoration(
+                    labelText: 'Tracking ID',
+                    labelStyle: TextStyle(color: kMaroon),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: kMaroon)),
+                  ),
+                  style: TextStyle(color: kMaroon),
+                  textInputAction: TextInputAction.done, // Done on Enter
+                  onSubmitted: (_) => _onSavePressed(), // Trigger save on Enter if last field
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _currentStatus,
+                  decoration: InputDecoration(
+                    labelText: 'Status',
+                    labelStyle: TextStyle(color: kMaroon),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: kMaroon)),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Available', child: Text('Available', style: TextStyle(color: kMaroon))),
+                    DropdownMenuItem(value: 'Borrowed', child: Text('Borrowed', style: TextStyle(color: kMaroon))),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _currentStatus = value!;
+                    });
+                  },
+                  dropdownColor: Colors.white,
+                  style: TextStyle(color: kMaroon),
+                ),
+                const SizedBox(height: 20),
+
+                // --- Action Buttons ---
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel', style: TextStyle(color: kMaroon)),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: kMaroon, foregroundColor: Colors.white),
+                      onPressed: _onSavePressed,
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+// =============================================================================
+// SECTION 3: ASSETS VIEW PAGE
+// =============================================================================
 
 class AssetsViewPage extends StatefulWidget {
   const AssetsViewPage({Key? key}) : super(key: key);
@@ -91,700 +422,375 @@ class AssetsViewPage extends StatefulWidget {
 }
 
 class _AssetsViewPageState extends State<AssetsViewPage> {
-  // Initial data for categories and assets
-  // final AssetViewService assetViewService = AssetViewService();
-// List<Map<String, dynamic>> categories = []; // Will be loaded from API
+  // State for the main page
+  List<AssetBatch> _assetCategories = []; // Stores our categories/batches
+  List<Asset> _allAssets = []; // Stores all individual asset items
+  String _searchQuery = '';
+  String _selectedFilterStatus = 'All'; // 'All', 'Available', 'Borrowed'
 
-// @override
-// void initState() {
-//   super.initState();
-//   // _loadCategories();
-// }
-
-// Future<void> _loadCategories() async {
-//   try {
-//     final data = await assetViewService.fetchCategories();
-//     setState(() {
-//       categories = data;
-//     });
-//   } catch (e) {
-//     // Handle error (show snackbar, etc.)
-//   }
-// }
-
-  List<Map<String, dynamic>> categories = [
-    {
-      'name': 'Laptops',
-      'assets': [
-        {
-          'asset': 'Google Pixelbook Go',
-          'status': 'In use',
-          'trackingId': 'LPT0039',
-          'batchNo': 'LPB002',
-        },
-        {
-          'asset': 'Microsoft Surface Laptop 4',
-          'status': 'Not-Available',
-          'trackingId': 'LPT0038',
-          'batchNo': 'LPB002',
-        },
-        {
-          'asset': 'Panasonic Toughbook 55',
-          'status': 'Available',
-          'trackingId': 'LPT0037',
-          'batchNo': 'LPB002',
-        },
-      ],
-    },
-    {
-      'name': 'Phones',
-      'assets': [
-        {
-          'asset': 'iPhone 14',
-          'status': 'Available',
-          'trackingId': 'PHN0012',
-          'batchNo': 'PHB001',
-        },
-      ],
-    },
-    {
-      'name': 'Headphones',
-      'assets': [],
-    },
-    {
-      'name': 'Bags',
-      'assets': [],
-    },
-    {
-      'name': 'Camera',
-      'assets': [],
-    },
-    {
-      'name': 'Mouse',
-      'assets': [],
-    },
-    {
-      'name': 'Car',
-      'assets': [],
-    },
-    {
-      'name': 'Computers',
-      'assets': [],
-    },
-  ];
-
-  String searchQuery = ''; // Stores the current search query
-  String filterStatus = 'All'; // Stores the current filter status
-
-  // --- Computed Property for Filtered Categories ---
-  List<Map<String, dynamic>> get filteredCategories {
-    return categories.map((category) {
-      final assets = (category['assets'] as List<dynamic>).where((asset) {
-        final assetMap = asset as Map<String, dynamic>; // Explicitly cast to Map<String, dynamic>
-        final matchesSearch = searchQuery.isEmpty ||
-            assetMap['asset'].toLowerCase().contains(searchQuery.toLowerCase()) ||
-            assetMap['trackingId'].toLowerCase().contains(searchQuery.toLowerCase()) ||
-            assetMap['batchNo'].toLowerCase().contains(searchQuery.toLowerCase());
-        final matchesStatus = filterStatus == 'All' || assetMap['status'] == filterStatus;
-        return matchesSearch && matchesStatus;
-      }).toList();
-      return {
-        'name': category['name'],
-        'assets': assets,
-      };
-    }).where((category) => (category['assets'] as List).isNotEmpty || searchQuery.isNotEmpty || filterStatus != 'All').toList();
-    // Only show categories that have assets after filtering, or if search/filter is active
-  }
+  // // Uncomment these variables for API integration
+  // bool _isLoading = false;
+  // String? _errorMessage;
+  // final String _apiBaseUrl = 'https://your-api-endpoint.com/api/v1'; // Placeholder
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Assets View', style: TextStyle(color: kMaroon)),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: kMaroon),
-        elevation: 1, // Adds a subtle shadow to the app bar
-      ),
-      body: Column(
-        children: [
-          // --- Search, Filter, Create Section ---
-          Container(
-            color: kMaroon.withOpacity(0.08), // Light maroon background
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search assets...',
-                      prefixIcon: const Icon(Icons.search, color: kMaroon),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: kMaroon),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: kMaroon, width: 2),
-                      ),
-                    ),
-                    style: const TextStyle(color: kMaroon),
-                    onChanged: (val) => setState(() => searchQuery = val),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Filter Button
-                IconButton(
-                  icon: const Icon(Icons.filter_list, color: kMaroon, size: 28),
-                  onPressed: _showFilterDialog,
-                  tooltip: 'Filter by Status',
-                ),
-                const SizedBox(width: 8),
-                // Create Button
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text('Create', style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kMaroon, // Button background color
-                    foregroundColor: Colors.white, // Text and icon color
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: _showCreateDialog,
-                ),
-              ],
-            ),
-          ),
-          const Divider(thickness: 1, height: 10), // Separator line
-
-          // --- Expandable Category List ---
-          Expanded(
-            child: ListView(
-              // Check if any category has assets after filtering
-              children: filteredCategories.isEmpty
-                  ? [
-                      const Padding(
-                        padding: EdgeInsets.all(24.0),
-                        child: Center(
-                          child: Text(
-                            'No assets or categories match your search/filter criteria.',
-                            style: TextStyle(color: kMaroon, fontSize: 16),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      )
-                    ]
-                  : filteredCategories.map((category) {
-                      final assets = category['assets'] as List<dynamic>;
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                        elevation: 0.5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(color: kMaroon.withOpacity(0.1), width: 1),
-                        ),
-                        child: ExpansionTile(
-                          key: PageStorageKey<String>(category['name']),
-                          title: Row(
-                            children: [
-                              Text(
-                                category['name'],
-                                style: const TextStyle(color: kMaroon, fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                              const SizedBox(width: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade700,
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: Text(
-                                  '${assets.length}',
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
-                          ),
-                          children: [
-                            // Display message if no assets in this category after filtering
-                            if (assets.isEmpty)
-                              const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text(
-                                  'No assets in this category match the current filter/search.',
-                                  style: TextStyle(color: kMaroon),
-                                  textAlign: TextAlign.center,
-                                ),
-                              )
-                            else
-                            // Table of assets with horizontal scrolling
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                  child: DataTable(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: kMaroon.withOpacity(0.2)),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    columnSpacing: 25.0, // Space between columns
-                                    dataRowMinHeight: 48.0,
-                                    dataRowMaxHeight: 60.0,
-                                    columns: const [
-                                      DataColumn(label: Text('Asset', style: TextStyle(color: kMaroon, fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text('Status', style: TextStyle(color: kMaroon, fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text('Tracking ID', style: TextStyle(color: kMaroon, fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text('Batch No', style: TextStyle(color: kMaroon, fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text('Actions', style: TextStyle(color: kMaroon, fontWeight: FontWeight.bold))),
-                                    ],
-                                    rows: assets.map<DataRow>((asset) {
-                                      final currentAsset = asset as Map<String, dynamic>;
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(Text(currentAsset['asset'], style: const TextStyle(color: kMaroon))),
-                                          DataCell(Text(currentAsset['status'], style: const TextStyle(color: kMaroon))),
-                                          DataCell(Text(currentAsset['trackingId'], style: const TextStyle(color: kMaroon))),
-                                          DataCell(Text(currentAsset['batchNo'], style: const TextStyle(color: kMaroon))),
-                                          DataCell(Row(
-                                            mainAxisSize: MainAxisSize.min, // Prevents row from expanding too much
-                                            children: [
-                                              // Edit Button
-                                              IconButton(
-                                                icon: const Icon(Icons.edit, color: Colors.blueGrey),
-                                                onPressed: () {
-                                                  _showEditAssetDialog(category['name'], currentAsset);
-                                                },
-                                                tooltip: 'Edit Asset',
-                                              ),
-                                              // Archive Button
-                                              IconButton(
-                                                icon: const Icon(Icons.archive, color: Colors.orange),
-                                                onPressed: () {
-                                                  _archiveAsset(category['name'], currentAsset);
-                                                },
-                                                tooltip: 'Archive Asset',
-                                              ),
-                                              // Delete Button
-                                              IconButton(
-                                                icon: const Icon(Icons.delete, color: Colors.red),
-                                                onPressed: () {
-                                                  _deleteAsset(category['name'], currentAsset);
-                                                },
-                                                tooltip: 'Delete Asset',
-                                              ),
-                                            ],
-                                          )),
-                                        ],
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
+  void initState() {
+    super.initState();
+    _loadInitialMockData(); // Load mock data on start
+    // // Uncomment this line to try fetching from API on start
+    // // _fetchInitialDataFromApi();
   }
 
-  // --- Filter Dialog Function ---
-  void _showFilterDialog() {
-    String localStatus = filterStatus; // Local state for the dialog
+  // --- Initial Mock Data (Default Behavior) ---
+  void _loadInitialMockData() {
+    _assetCategories = [
+      AssetBatch(id: 'cat_1', batchNo: 'GS-TAP-2025-012', title: 'Android Tablets'),
+      AssetBatch(id: 'cat_2', batchNo: 'GS-LAP-MI-007', title: 'Mi Laptops'),
+      AssetBatch(id: 'cat_3', batchNo: 'GS-LAP-ASUS-003', title: 'ASUS Laptops'),
+    ];
 
+    _allAssets = [
+      Asset(id: 'asset_1', name: 'Samsung Tab S8', trackingId: 'TABS8-001', batchNo: 'GS-TAP-2025-012', status: 'Available'),
+      Asset(id: 'asset_2', name: 'Lenovo P11', trackingId: 'LENP11-001', batchNo: 'GS-TAP-2025-012', status: 'Borrowed'),
+      Asset(id: 'asset_3', name: 'Mi Notebook Pro', trackingId: 'MINBP-001', batchNo: 'GS-LAP-MI-007', status: 'Available'),
+      Asset(id: 'asset_4', name: 'Mi Gaming Laptop', trackingId: 'MIGL-001', batchNo: 'GS-LAP-MI-007', status: 'Available'),
+      Asset(id: 'asset_5', name: 'ASUS Zenbook 14', trackingId: 'ASZ14-001', batchNo: 'GS-LAP-ASUS-003', status: 'Borrowed'),
+      Asset(id: 'asset_6', name: 'ASUS ROG Strix', trackingId: 'ASROG-001', batchNo: 'GS-LAP-ASUS-003', status: 'Available'),
+    ];
+  }
+
+  // --- Filtered and Searched Categories ---
+  List<AssetBatch> get _filteredCategories {
+    List<AssetBatch> filteredBySearch = _assetCategories.where((category) {
+      final titleLower = category.title.toLowerCase();
+      final queryLower = _searchQuery.toLowerCase();
+      return titleLower.contains(queryLower);
+    }).toList();
+
+    // If a filter is applied to assets, we still show all matching categories,
+    // but the assets shown *within* the expanded category will be filtered.
+    return filteredBySearch;
+  }
+
+  // --- Show Create/Edit Asset Dialog ---
+  void _showCreateEditAssetDialog() {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Filter Assets by Status', style: TextStyle(color: kMaroon)),
-          content: DropdownButtonFormField<String>(
-            value: localStatus,
-            items: ['All', 'Available', 'In use', 'Not-Available']
-                .map((status) => DropdownMenuItem(value: status, child: Text(status)))
-                .toList(),
-            onChanged: (val) {
-              setState(() { // Using setState here to update localStatus within the dialog
-                localStatus = val ?? 'All';
-              });
-            },
-            decoration: const InputDecoration(
-              labelText: 'Status',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  filterStatus = localStatus; // Update global filter status
-                });
-                Navigator.pop(context); // Close dialog
-              },
-              child: const Text('Apply', style: TextStyle(color: kMaroon)),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  filterStatus = 'All'; // Clear filter
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Clear', style: TextStyle(color: kMaroon)),
-            ),
-          ],
+      builder: (dialogContext) {
+        return CreateEditAssetDialog(
+          existingCategories: _assetCategories, // Pass existing categories for dropdown
+          onSave: (newCategory, newAsset) {
+            setState(() {
+              if (newCategory != null) {
+                // Add the new category to our list of categories
+                _assetCategories.add(newCategory);
+                // // Uncomment for API create category
+                // // _createCategoryApi(newCategory);
+              }
+              // Add the new asset to our list of all assets
+              _allAssets.add(newAsset);
+              // // Uncomment for API create asset
+              // // _createAssetApi(newAsset);
+            });
+          },
         );
       },
     );
   }
 
-  // --- Create Dialog Function ---
-  void _showCreateDialog() {
-    String? selectedCategory;
-    bool isNewCategory = false;
-    String newCategoryName = '';
-    String assetName = '';
-    String trackingId = '';
-    String batchNo = '';
-    String status = 'Available';
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setLocalState) {
-          // StatefulBuilder allows updating UI within the dialog
-          return AlertDialog(
-            title: const Text('Add Asset or Category', style: TextStyle(color: kMaroon)),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Ensures column takes minimum space
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: isNewCategory,
-                        onChanged: (val) => setLocalState(() => isNewCategory = val ?? false),
-                        activeColor: kMaroon,
-                      ),
-                      const Text('Add New Category', style: TextStyle(color: kMaroon)),
-                    ],
-                  ),
-                  if (isNewCategory)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: TextField(
-                        decoration: const InputDecoration(
-                          labelText: 'New Category Name',
-                          border: OutlineInputBorder(),
-                        ),
-                        onChanged: (val) => newCategoryName = val,
-                      ),
-                    )
-                  else
-                    // Reverted to DropdownSearch for category selection
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: DropdownSearch<String>(
-                        items: categories.map((c) => c['name'] as String).toList(),
-                        dropdownDecoratorProps: const DropDownDecoratorProps(
-                          dropdownSearchDecoration: InputDecoration(
-                            labelText: "Select Existing Category",
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        popupProps: const PopupProps.menu(
-                          showSearchBox: true,
-                          // Added menuProps for more explicit styling, though unlikely to fix the bool-double error directly
-                          menuProps: MenuProps(
-                            elevation: 8,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                            ),
-                          ),
-                        ),
-                        onChanged: (val) => setLocalState(() => selectedCategory = val),
-                        selectedItem: selectedCategory, // Use selectedCategory as is
-                      ),
-                    ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Asset Name',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (val) => assetName = val,
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Tracking ID',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (val) => trackingId = val,
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Batch No',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (val) => batchNo = val,
-                  ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    value: status,
-                    items: ['Available', 'In use', 'Not-Available']
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                        .toList(),
-                    onChanged: (val) => setLocalState(() => status = val ?? 'Available'),
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: kMaroon)),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kMaroon,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  // --- Validation ---
-                  if (assetName.trim().isEmpty || trackingId.trim().isEmpty || batchNo.trim().isEmpty) {
-                    _showSnackBar('Please fill all asset fields.', Colors.red);
-                    return;
-                  }
-                  if (isNewCategory && newCategoryName.trim().isEmpty) {
-                    _showSnackBar('Please enter a new category name.', Colors.red);
-                    return;
-                  }
-                  if (!isNewCategory && selectedCategory == null) {
-                    _showSnackBar('Please select an existing category.', Colors.red);
-                    return;
-                  }
-
-                  setState(() {
-                    if (isNewCategory) {
-                      // Add new category and its first asset
-                      categories.add({
-                        'name': newCategoryName.trim(),
-                        'assets': [
-                          {
-                            'asset': assetName.trim(),
-                            'status': status,
-                            'trackingId': trackingId.trim(),
-                            'batchNo': batchNo.trim(),
-                          }
-                        ],
-                      });
-                      _showSnackBar('New category "${newCategoryName.trim()}" and asset added!', Colors.green);
-                    } else {
-                      // Add asset to existing category
-                      final catIndex = categories.indexWhere((c) => c['name'] == selectedCategory);
-                      if (catIndex != -1) {
-                        (categories[catIndex]['assets'] as List).add({
-                          'asset': assetName.trim(),
-                          'status': status,
-                          'trackingId': trackingId.trim(),
-                          'batchNo': batchNo.trim(),
-                        });
-                        _showSnackBar('Asset added to "$selectedCategory"!', Colors.green);
-                      }
-                    }
-                  });
-                  // if (isNewCategory) {
-//   await assetViewService.addCategory(newCategoryName.trim(), {
-//     'asset': assetName.trim(),
-//     'status': status,
-//     'trackingId': trackingId.trim(),
-//     'batchNo': batchNo.trim(),
-//   });
-// } else {
-//   await assetViewService.addAsset(selectedCategory, {
-//     'asset': assetName.trim(),
-//     'status': status,
-//     'trackingId': trackingId.trim(),
-//     'batchNo': batchNo.trim(),
-//   });
-// }
-// await _loadCategories();
-
-                  Navigator.pop(context); // Close dialog
-                },
-                child: const Text('Done'),
-              ),
-            ],
-          );
-        });
-      },
-    );
-  }
-
-  // --- Edit Asset Dialog Function ---
-  void _showEditAssetDialog(String categoryName, Map<String, dynamic> assetToEdit) {
-    // Create copies to allow editing without directly modifying the original asset until confirmed
-    String newAssetName = assetToEdit['asset'];
-    String newTrackingId = assetToEdit['trackingId'];
-    String newBatchNo = assetToEdit['batchNo'];
-    String newStatus = assetToEdit['status'];
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setLocalState) {
-          return AlertDialog(
-            title: const Text('Edit Asset', style: TextStyle(color: kMaroon)),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: TextEditingController(text: newAssetName),
-                    decoration: const InputDecoration(labelText: 'Asset Name', border: OutlineInputBorder()),
-                    onChanged: (val) => newAssetName = val,
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    controller: TextEditingController(text: newTrackingId),
-                    decoration: const InputDecoration(labelText: 'Tracking ID', border: OutlineInputBorder()),
-                    onChanged: (val) => newTrackingId = val,
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    controller: TextEditingController(text: newBatchNo),
-                    decoration: const InputDecoration(labelText: 'Batch No', border: OutlineInputBorder()),
-                    onChanged: (val) => newBatchNo = val,
-                  ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    value: newStatus,
-                    items: ['Available', 'In use', 'Not-Available']
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                        .toList(),
-                    onChanged: (val) => setLocalState(() => newStatus = val ?? 'Available'),
-                    decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: kMaroon)),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kMaroon,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  if (newAssetName.trim().isEmpty || newTrackingId.trim().isEmpty || newBatchNo.trim().isEmpty) {
-                    _showSnackBar('Please fill all fields.', Colors.red);
-                    return;
-                  }
-
-                  setState(() {
-                    final cat = categories.firstWhere((c) => c['name'] == categoryName);
-                    final assetList = cat['assets'] as List;
-                    final index = assetList.indexOf(assetToEdit); // Find the original asset reference
-
-                    if (index != -1) {
-                      assetList[index] = { // Update the asset directly in the list
-                        'asset': newAssetName.trim(),
-                        'status': newStatus,
-                        'trackingId': newTrackingId.trim(),
-                        'batchNo': newBatchNo.trim(),
-                      };
-                      _showSnackBar('Asset updated successfully!', Colors.green);
-                    }
-                  });
-                  // await assetViewService.editAsset(
-//   categoryName,
-//   assetToEdit['trackingId'], // Or use a real unique ID from your backend
-//   {
-//     'asset': newAssetName.trim(),
-//     'status': newStatus,
-//     'trackingId': newTrackingId.trim(),
-//     'batchNo': newBatchNo.trim(),
-//   },
-// );
-// await _loadCategories();
-
-                  Navigator.pop(context);
-                },
-                child: const Text('Save'),
-              ),
-            ],
-          );
-        });
-      },
-    );
-  }
-
-
-  // --- Delete Asset Function ---
-  void _deleteAsset(String categoryName, Map<String, dynamic> asset) {
+  // --- Delete Asset Function (Individual Asset) ---
+  void _deleteAsset(String assetId) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('Delete Asset', style: TextStyle(color: kMaroon)),
-        content: Text('Are you sure you want to delete "${asset['asset']}"?', style: const TextStyle(color: kMaroon)),
+        content: const Text('Do you really want to delete this asset?', style: TextStyle(color: kMaroon)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: kMaroon)),
+            child: const Text('No', style: TextStyle(color: kMaroon)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: kMaroon, foregroundColor: Colors.white),
             onPressed: () {
               setState(() {
-                final cat = categories.firstWhere((c) => c['name'] == categoryName);
-                (cat['assets'] as List).remove(asset);
-                _showSnackBar('Asset deleted.', Colors.green);
+                _allAssets.removeWhere((asset) => asset.id == assetId);
               });
-              // await assetViewService.deleteAsset(categoryName, asset['trackingId']);
-// await _loadCategories();
-
+              // // Uncomment for API delete asset
+              // // _deleteAssetApi(assetId);
               Navigator.pop(context);
             },
-            child: const Text('Delete'),
+            child: const Text('Yes'),
           ),
         ],
       ),
     );
   }
 
-  // --- Archive Asset Function ---
-  void _archiveAsset(String categoryName, Map<String, dynamic> asset) {
-    setState(() {
-      final cat = categories.firstWhere((c) => c['name'] == categoryName);
-      (cat['assets'] as List).remove(asset);
-    });
-    // await assetViewService.archiveAsset(categoryName, asset['trackingId']);
-// await _loadCategories();
+  // --- API Calls (Commented Out) ---
+  // // Future<void> _fetchInitialDataFromApi() async { /* ... implementation for fetching categories and assets ... */ }
+  // // Future<void> _createCategoryApi(AssetBatch newCategory) async { /* ... implementation ... */ }
+  // // Future<void> _createAssetApi(Asset newAsset) async { /* ... implementation ... */ }
+  // // Future<void> _deleteAssetApi(String assetId) async { /* ... implementation ... */ }
+  // // Future<void> _updateAssetApi(Asset updatedAsset) async { /* ... implementation ... */ }
+  // // void _showApiErrorSnackBar(String message) { /* ... implementation ... */ }
 
-    _showSnackBar('Asset "${asset['asset']}" archived.', Colors.blue);
-  }
 
-  // --- Helper function to show Snackbars ---
-  void _showSnackBar(String message, Color backgroundColor) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 2),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('Assets View', style: TextStyle(color: kMaroon, fontWeight: FontWeight.bold)),
       ),
+      body: Column(
+        children: [
+          // --- Search and Filter Bar ---
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    style: const TextStyle(color: kMaroon),
+                    decoration: InputDecoration(
+                      hintText: 'Search by Category Title',
+                      hintStyle: TextStyle(color: kMaroon.withOpacity(0.6)),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: kMaroon.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: kMaroon, width: 2),
+                      ),
+                      prefixIcon: const Icon(Icons.search, color: kMaroon),
+                    ),
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Filter Button (Dropdown)
+                DropdownButton<String>(
+                  value: _selectedFilterStatus,
+                  icon: const Icon(Icons.filter_list, color: kMaroon),
+                  style: const TextStyle(color: kMaroon),
+                  underline: Container(height: 0),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedFilterStatus = newValue!;
+                    });
+                  },
+                  items: <String>['All', 'Available', 'Borrowed']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text('Add Asset', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kMaroon,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _showCreateEditAssetDialog, // Opens the unified dialog
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Colors.black26),
+
+          // --- Asset Categories List ---
+          Expanded(
+            child: _filteredCategories.isEmpty
+                ? Center(
+                    child: Text(
+                      _searchQuery.isEmpty ? 'No asset categories available.' : 'No matching categories found.',
+                      style: const TextStyle(color: kMaroon, fontSize: 16),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _filteredCategories.length,
+                    itemBuilder: (context, idx) {
+                      final category = _filteredCategories[idx];
+                      // Get assets belonging to this category and apply status filter
+                      final assetsInThisCategory = _allAssets.where(
+                        (asset) => asset.batchNo == category.batchNo &&
+                                    (_selectedFilterStatus == 'All' || asset.status == _selectedFilterStatus)
+                      ).toList();
+
+                      return Card(
+                        color: Colors.white,
+                        margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 2,
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                          collapsedIconColor: kMaroon,
+                          iconColor: kMaroon,
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  category.title, // Display category title
+                                  style: const TextStyle(
+                                    color: kMaroon,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: kMaroon.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${assetsInThisCategory.length} assets', // Show count of filtered assets
+                                  style: const TextStyle(color: kMaroon),
+                                ),
+                              ),
+                            ],
+                          ),
+                          children: [
+                            // Display assets within this expanded category
+                            if (assetsInThisCategory.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  _selectedFilterStatus == 'All'
+                                      ? 'No assets in this category.'
+                                      : 'No ${_selectedFilterStatus.toLowerCase()} assets in this category.',
+                                  style: TextStyle(color: kMaroon.withOpacity(0.7)),
+                                ),
+                              ),
+                            ...assetsInThisCategory.map((asset) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.label, color: kMaroon, size: 18),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Name: ${asset.name}',
+                                            style: const TextStyle(color: kMaroon, fontSize: 14),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.qr_code, color: kMaroon, size: 18),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Tracking ID: ${asset.trackingId}',
+                                            style: const TextStyle(color: kMaroon, fontSize: 14),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.category, color: kMaroon, size: 18),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Batch No: ${asset.batchNo}',
+                                            style: const TextStyle(color: kMaroon, fontSize: 14),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          asset.status == 'Available' ? Icons.check_circle : Icons.timer_off,
+                                          color: asset.status == 'Available' ? Colors.green : Colors.orange,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Status: ${asset.status}',
+                                            style: TextStyle(
+                                              color: asset.status == 'Available' ? Colors.green : Colors.orange,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        // Delete individual asset button
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_forever, color: Colors.red, size: 20),
+                                          onPressed: () => _deleteAsset(asset.id!),
+                                          tooltip: 'Remove this asset',
+                                        ),
+                                      ],
+                                    ),
+                                    const Divider(color: Colors.black12, height: 20), // Separator for assets
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            const SizedBox(height: 10), // Space after last asset
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// MAIN ENTRY POINT (example for demonstration, adjust as needed)
+// =============================================================================
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Asset Management',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const AssetsViewPage(), // Your Assets View Page is the home screen
     );
   }
 }

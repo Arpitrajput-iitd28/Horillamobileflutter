@@ -1,6 +1,6 @@
 1. Invoice :-
->  clear_request =
->  invoice_dashboard =
+>  clear_request = DONE
+>  invoice_dashboard = DONE
 
 2. Performance :-
 >  bonus_points =
@@ -13,18 +13,21 @@
 
 3. Recruitment :-
 >  candidates =
->  interview =
+>  interview = DONE
 >  pipeline =
 >  recruitment_dashboard =
 >  recruitment_history =
 >  recruitment_template =
 
 4. Resource :-
->  assets_batches = 
+>  assets_batches = Done
 >  assets_history = DONE
 >  assets_dashboard = DONE
 >  assets_view = DONE
 >  requestandallocation = DONE
 
-5. 
+5. Project
+>  projects =
+>  tasks = 
+>  timesheet = 
 --------------------------------------------------------------------------------------------------------------------------------------------------------

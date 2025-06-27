@@ -18,6 +18,76 @@ class AttendanceAttendance extends StatefulWidget {
 
 class _AttendanceAttendance extends State<AttendanceAttendance>
     with SingleTickerProviderStateMixin {
+      // MOCK DATA FOR ATTENDANCE
+final List<Map<String, dynamic>> mockNonValidAttendance = [
+  {
+    'employee_first_name': 'Alice',
+    'employee_last_name': 'Smith',
+    'employee_profile_url': '',
+    'badge_id': 'EMP001',
+    'attendance_date': '2025-06-24',
+    'attendance_clock_in': '09:00',
+    'attendance_clock_out': '17:00',
+    'shift_name': 'Morning',
+    'minimum_hour': '08:00',
+    'attendance_clock_in_date': '2025-06-24',
+    'attendance_clock_out_date': '2025-06-24',
+    'attendance_worked_hour': '08:00',
+    'id': 1,
+  },
+  {
+    'employee_first_name': 'Bob',
+    'employee_last_name': 'Johnson',
+    'employee_profile_url': '',
+    'badge_id': 'EMP002',
+    'attendance_date': '2025-06-24',
+    'attendance_clock_in': '10:00',
+    'attendance_clock_out': '18:00',
+    'shift_name': 'Morning',
+    'minimum_hour': '08:00',
+    'attendance_clock_in_date': '2025-06-24',
+    'attendance_clock_out_date': '2025-06-24',
+    'attendance_worked_hour': '08:00',
+    'id': 2,
+  },
+];
+
+final List<Map<String, dynamic>> mockOvertimeAttendance = [
+  {
+    'employee_first_name': 'Charlie',
+    'employee_last_name': 'Brown',
+    'employee_profile_url': '',
+    'badge_id': 'EMP003',
+    'attendance_date': '2025-06-23',
+    'attendance_clock_in': '09:00',
+    'attendance_clock_out': '20:00',
+    'shift_name': 'Evening',
+    'minimum_hour': '08:00',
+    'attendance_clock_in_date': '2025-06-23',
+    'attendance_clock_out_date': '2025-06-23',
+    'attendance_worked_hour': '11:00',
+    'id': 3,
+  },
+];
+
+final List<Map<String, dynamic>> mockValidatedAttendance = [
+  {
+    'employee_first_name': 'Diana',
+    'employee_last_name': 'Prince',
+    'employee_profile_url': '',
+    'badge_id': 'EMP004',
+    'attendance_date': '2025-06-22',
+    'attendance_clock_in': '08:30',
+    'attendance_clock_out': '17:00',
+    'shift_name': 'Morning',
+    'minimum_hour': '08:00',
+    'attendance_clock_in_date': '2025-06-22',
+    'attendance_clock_out_date': '2025-06-22',
+    'attendance_worked_hour': '08:30',
+    'id': 4,
+  },
+];
+
   late Map<String, dynamic> arguments;
   late String baseUrl = '';
   TextEditingController workedHoursController = TextEditingController();
@@ -109,13 +179,21 @@ class _AttendanceAttendance extends State<AttendanceAttendance>
     prefetchData();
     _simulateLoading();
     _scrollController.addListener(_scrollListener);
-    getAllNonValidatedAttendance();
-    getAllOvertimeAttendance();
-    getAllValidatedAttendance();
-    getEmployees();
-    getShiftDetails();
-    managerChecks();
-    getBaseUrl();
+
+
+    // getAllNonValidatedAttendance();
+    // getAllOvertimeAttendance();
+    // getAllValidatedAttendance();
+    // getEmployees();
+    // getShiftDetails();
+    // managerChecks();
+    // getBaseUrl();
+
+// USE MOCK DATA INSTEAD
+  requestsNonValidAttendance = List<Map<String, dynamic>>.from(mockNonValidAttendance);
+  requestsOvertimeAttendance = List<Map<String, dynamic>>.from(mockOvertimeAttendance);
+  requestsValidatedAttendance = List<Map<String, dynamic>>.from(mockValidatedAttendance);
+
     dateInput.text = "";
     checkInTime.text = "";
     checkOutTime.text = "";

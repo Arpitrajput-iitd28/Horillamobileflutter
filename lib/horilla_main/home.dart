@@ -868,6 +868,21 @@ class _HomePageState extends State<HomePage> {
             ),
             Card(
               child: ListTile(
+                leading: const Icon(Icons.table_view_sharp),
+                title: const Text('Project'),
+                subtitle: Text(
+                  'View and manage all the ongoing Projects.',
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+                onTap: () {
+                  Navigator.pushNamed(context, '/project_dashboard',
+                      arguments: permissionCheck);
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
                 leading: const Icon(Icons.bar_chart_outlined),
                 title: const Text('Performance'),
                 subtitle: Text(

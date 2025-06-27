@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_face_api_beta/flutter_face_api.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:horilla/project/project_dashboard.dart';
+import 'package:horilla/recruitment/interview.dart';
 import 'package:horilla/recruitment/recruitment_history.dart';
+import 'package:horilla/resource/assets_batches.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -42,12 +45,16 @@ import "resource/assets_dashboard.dart";
 import "resource/requestandallocation.dart";
 import 'resource/assets_view.dart';
 import "resource/assets_history.dart";
+import "resource/assets_batches.dart";
 
 import "invoice/invoice_dashboard.dart" ;
 
 import "recruitment/recruitment_dashboard.dart";
 import "recruitment/recruitment_template.dart";
 import "recruitment/recruitment_history.dart";
+import "recruitment/interview.dart";
+
+import "project/project_dashboard.dart";
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
@@ -380,9 +387,11 @@ class LoginApp extends StatelessWidget {
         "/recruitment_dashboard" : (context) => const RecruitmentDashboard(),
         "/recruitment_template" : (context) => const RecruitmentTemplatePage(),
         "/recruitment_history" : (context) => const RecruitmentHistoryPage(),
-        "/assets_history" : (context) => AssetHistory(),
+        "/assets_history" : (context) => const AssetHistory(),
+        "/assets_batches" : (context) => const AssetBatches() ,
+        '/project_dashboard' : (context) => const ProjectDashboard(),
+        '/interview' : (context) => const ScheduledInterviews(),
       
-
       },
     );
   }
