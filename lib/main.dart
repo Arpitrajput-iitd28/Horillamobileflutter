@@ -378,7 +378,7 @@ class LoginApp extends StatelessWidget {
         "/objectives": (context) => const PerformanceObjectives(),
         "/bonus_points": (context) => const BonusPoint(),
         "/question_template": (context) => const QuestionTemplate(),
-        "/feedback": (context) => const PerformanceFeedback(),
+        "/feedback": (context) => const FeedbackPage(),
         "/meetings": (context) => const Meetings(),
         '/assets_dashboard': (context) => const AssetsDashboard(),
         "/invoice_dashboard" : (context) => const InvoiceDashboard(),

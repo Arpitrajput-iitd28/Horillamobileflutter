@@ -3,6 +3,127 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+// For simulating API calls (in a real app, you'd use packages like http or dio)
+// import 'dart:convert'; // For json.decode/encode
+
+// --- API Integration Placeholder (Commented Out) ---
+// In a real application, you would interact with a backend API to persist data.
+// This section demonstrates where API calls would typically be made.
+
+/*
+// This would be your API client or service
+class ApiService {
+  // Simulates fetching templates from a backend
+  Future<List<Map<String, dynamic>>> fetchTemplates() async {
+    // In a real app, this would be an http GET request to your backend
+    // Example:
+    // final response = await http.get(Uri.parse('YOUR_BACKEND_URL/templates'));
+    // if (response.statusCode == 200) {
+    //   return json.decode(response.body) as List<Map<String, dynamic>>;
+    // } else {
+    //   throw Exception('Failed to load templates');
+    // }
+
+    // Simulating network delay and returning mock data
+    await Future.delayed(const Duration(seconds: 2));
+    print("API: Fetching templates...");
+    // This would ideally return fresh data from the server.
+    // For this example, we'll return a copy of initial mock data to simulate success.
+    return [
+      {
+        'title': 'Front-end Development (API Example)',
+        'questions': [
+          {'text': 'API Q1: What is a widget in Flutter?', 'priority': 'Common'},
+          {'text': 'API Q2: Explain the widget lifecycle.', 'priority': 'Advanced'},
+        ],
+      },
+      // You could add more mock templates here to simulate new data from server
+    ];
+  }
+
+  // Simulates adding a new template to the backend
+  Future<Map<String, dynamic>> addTemplate(Map<String, dynamic> newTemplate) async {
+    // In a real app, this would be an http POST request
+    // Example:
+    // final response = await http.post(
+    //   Uri.parse('YOUR_BACKEND_URL/templates'),
+    //   headers: {'Content-Type': 'application/json'},
+    //   body: json.encode(newTemplate),
+    // );
+    // if (response.statusCode == 201) {
+    //   return json.decode(response.body); // Return the created template with ID from backend
+    // } else {
+    //   throw Exception('Failed to add template');
+    // }
+
+    await Future.delayed(const Duration(seconds: 1));
+    print("API: Adding new template: ${newTemplate['title']}");
+    // Simulate assigning an ID from the backend
+    return {...newTemplate, 'id': 'temp_${DateTime.now().millisecondsSinceEpoch}'};
+  }
+
+  // Simulates adding a new question to an existing template on the backend
+  Future<Map<String, dynamic>> addQuestionToTemplate(String templateId, Map<String, dynamic> newQuestion) async {
+    // In a real app, this would be an http POST request to a specific template endpoint
+    // Example:
+    // final response = await http.post(
+    //   Uri.parse('YOUR_BACKEND_URL/templates/$templateId/questions'),
+    //   headers: {'Content-Type': 'application/json'},
+    //   body: json.encode(newQuestion),
+    // );
+    // if (response.statusCode == 201) {
+    //   return json.decode(response.body); // Return the created question with ID
+    // } else {
+    //   throw Exception('Failed to add question');
+    // }
+
+    await Future.delayed(const Duration(seconds: 1));
+    print("API: Adding question '${newQuestion['text']}' to template '$templateId'");
+    // Simulate assigning an ID from the backend
+    return {...newQuestion, 'id': 'ques_${DateTime.now().millisecondsSinceEpoch}'};
+  }
+
+  // Simulates updating an existing template (e.g., questions within it)
+  Future<void> updateTemplate(String templateId, Map<String, dynamic> updatedTemplate) async {
+    // In a real app, this would be an http PUT/PATCH request
+    // Example:
+    // final response = await http.put(
+    //   Uri.parse('YOUR_BACKEND_URL/templates/$templateId'),
+    //   headers: {'Content-Type': 'application/json'},
+    //   body: json.encode(updatedTemplate),
+    // );
+    await Future.delayed(const Duration(seconds: 1));
+    print("API: Updating template with ID: $templateId");
+  }
+
+  // Simulates deleting a template
+  Future<void> deleteTemplate(String templateId) async {
+    // In a real app, this would be an http DELETE request
+    // Example:
+    // final response = await http.delete(Uri.parse('YOUR_BACKEND_URL/templates/$templateId'));
+    await Future.delayed(const Duration(seconds: 1));
+    print("API: Deleting template with ID: $templateId");
+  }
+
+  // Simulates uploading a PDF to a backend storage
+  Future<String> uploadPdf(List<int> pdfBytes, String filename) async {
+    // In a real app, this would be an http POST request for file upload
+    // Example:
+    // final request = http.MultipartRequest('POST', Uri.parse('YOUR_STORAGE_UPLOAD_URL'));
+    // request.files.add(http.MultipartFile.fromBytes('file', pdfBytes, filename: filename));
+    // final response = await request.send();
+    await Future.delayed(const Duration(seconds: 2));
+    final String url = 'YOUR_STORAGE_URL/$filename';
+    print("API: Uploaded PDF to: $url");
+    return url;
+  }
+}
+
+// Initialize API service (this would be typically managed by a dependency injection system)
+final ApiService apiService = ApiService();
+
+*/
+// --- End API Integration Placeholder ---
 
 const Color kMaroon = Color(0xFF800000);
 
@@ -42,7 +163,42 @@ class _RecruitmentTemplatePageState extends State<RecruitmentTemplatePage> {
     for (int i = 0; i < templates.length; i++) {
       selectedQuestions[i] = {};
     }
+
+    // --- API Call Placeholder (Commented Out) ---
+    // Call API to fetch templates when the page initializes
+    /*
+    _fetchTemplatesFromApi();
+    */
+    // --- End API Call Placeholder ---
   }
+
+  // --- API Integration Placeholder (Commented Out) ---
+  /*
+  Future<void> _fetchTemplatesFromApi() async {
+    try {
+      final fetchedTemplates = await apiService.fetchTemplates();
+      setState(() {
+        templates = fetchedTemplates;
+        // Re-initialize selection states for new templates
+        selectedTemplates = List.filled(templates.length, false);
+        selectedQuestions = {};
+        for (int i = 0; i < templates.length; i++) {
+          selectedQuestions[i] = {};
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Templates loaded from API (simulated)!')),
+      );
+    } catch (e) {
+      print('Error fetching templates: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load templates: $e')),
+      );
+    }
+  }
+  */
+  // --- End API Integration Placeholder ---
+
 
   List<Map<String, dynamic>> get filteredTemplates {
     if (searchQuery.isEmpty) return templates;
@@ -142,7 +298,7 @@ class _RecruitmentTemplatePageState extends State<RecruitmentTemplatePage> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: kMaroon, foregroundColor: Colors.white),
-                onPressed: () {
+                onPressed: () async { // Made async to await API calls
                   if ((isNewTemplate && newTemplateTitle.trim().isEmpty) ||
                       questionText.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -150,6 +306,54 @@ class _RecruitmentTemplatePageState extends State<RecruitmentTemplatePage> {
                     );
                     return;
                   }
+
+                  // --- API Call Placeholder (Commented Out) ---
+                  // Simulate API call to add template/question
+                  /*
+                  try {
+                    if (isNewTemplate) {
+                      final newTempData = {
+                        'title': newTemplateTitle,
+                        'questions': [
+                          {'text': questionText, 'priority': priority}
+                        ],
+                      };
+                      final createdTemplate = await apiService.addTemplate(newTempData);
+                      // On success, update local state
+                      setState(() {
+                        templates.add(createdTemplate);
+                        selectedTemplates.add(false);
+                        selectedQuestions[templates.length - 1] = {};
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Template "${createdTemplate['title']}" added (simulated API)!')),
+                      );
+                    } else {
+                      final idx = templates.indexWhere((t) => t['title'] == selectedTemplate);
+                      if (idx != -1) {
+                        final questionData = {'text': questionText, 'priority': priority};
+                        // In a real app, you'd use the template's actual ID from the backend
+                        final templateId = templates[idx]['id'] ?? templates[idx]['title']; // Use ID if available
+                        final createdQuestion = await apiService.addQuestionToTemplate(templateId, questionData);
+                        // On success, update local state
+                        setState(() {
+                          (templates[idx]['questions'] as List).add(createdQuestion);
+                        });
+                         ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Question added to "${templates[idx]['title']}" (simulated API)!')),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    print('Error adding template/question: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to add: $e')),
+                    );
+                  }
+                  */
+                  // --- End API Call Placeholder ---
+
+                  // Original local state update (kept for current functionality)
                   setState(() {
                     if (isNewTemplate) {
                       templates.add({
@@ -354,6 +558,25 @@ class _RecruitmentTemplatePageState extends State<RecruitmentTemplatePage> {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
     );
+
+    // --- API Call Placeholder (Commented Out) ---
+    // After PDF is generated, you might want to upload it to a backend storage
+    /*
+    try {
+      final pdfBytes = await pdf.save();
+      final filename = 'recruitment_template_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final uploadedUrl = await apiService.uploadPdf(pdfBytes, filename);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('PDF uploaded to: $uploadedUrl (simulated API)!')),
+      );
+    } catch (e) {
+      print('Error uploading PDF: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload PDF: $e')),
+      );
+    }
+    */
+    // --- End API Call Placeholder ---
   }
 
   @override

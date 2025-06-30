@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 // Import necessary packages for API operations.
+// You would need to add 'http' to your pubspec.yaml:
+// dependencies:
+//   http: ^0.13.3 // Or the latest compatible version
 // import 'package:http/http.dart' as http;
 // import 'dart:convert'; // For encoding/decoding JSON
 

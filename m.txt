@@ -5,7 +5,7 @@
 2. Performance :-
 >  bonus_points = DONE
 >  extended_dashboard = DONE
->  feedback =
+>  feedback = DONE
 >  meetings = DONE
 >  objectives = DONE
 >  performance_dashboard = DONE
@@ -17,10 +17,10 @@
 >  pipeline =
 >  recruitment_dashboard =
 >  recruitment_history = DONE
->  recruitment_template = 
+>  recruitment_template = DONE
 
 4. Resource :-
->  assets_batches = Done
+>  assets_batches = DONE
 >  assets_history = DONE
 >  assets_dashboard = DONE
 >  assets_view = DONE

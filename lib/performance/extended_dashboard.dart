@@ -313,7 +313,7 @@ class _ExtendedDashboardState extends State<ExtendedDashboard> {
                 onChartTypeChanged: (type) => setState(() => bonusChartType = type),
                 chart: _buildDynamicChart(
                   bonusPoints.map((e) => e['employee'].toString()).toList(),
-                  bonusPoints.map((e) => e['points'] as double).toList(),
+                  bonusPoints.map<double>((e) => (e['points'] as num).toDouble()).toList(),
                   bonusChartType,
                   'Employee',
                   'Points',
@@ -501,7 +501,7 @@ class _ExtendedDashboardState extends State<ExtendedDashboard> {
               barRods: [
                 BarChartRodData(
                   toY: values[i],
-                  color: kMaroon.withOpacity(0.7 + 0.3 * (i % 2)),
+                  color: (kMaroon as Color).withOpacity(0.7 + 0.3 * (i % 2)),
                   width: 16,
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -521,7 +521,7 @@ class _ExtendedDashboardState extends State<ExtendedDashboard> {
             (i) => PieChartSectionData(
               value: values[i],
               title: '${((values[i] / values.reduce((a, b) => a + b)) * 100).toStringAsFixed(1)}%',
-              color: kMaroon.withOpacity(0.7 + 0.3 * (i % 2)),
+              color: (kMaroon as Color).withOpacity(0.7 + 0.3 * (i % 2)),
               radius: 60,
               titleStyle: const TextStyle(color: Colors.white, fontSize: 12),
             ),
